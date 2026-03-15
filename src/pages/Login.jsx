@@ -3,28 +3,32 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Eye, EyeOff, AlertCircle, LogIn } from 'lucide-react';
 
+import { supabase } from '../lib/supabase';
+
 const Login = () => {
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
 
-        // Simulate loading for better UX
-        setTimeout(() => {
-            if (password === 'lusia013') {
-                localStorage.setItem('isAuthenticated', 'true');
-                navigate('/admin');
-            } else {
-                setError('პაროლი არასწორია');
-                setIsLoading(false);
-            }
-        }, 500);
+        const { error } = await supabase.auth.signInWithPassword({
+            email: `${username}@admin.com`,
+            password,
+        });
+
+        if (error) {
+            setError(error.message === 'Invalid login credentials' ? 'მომხმარებლის სახელი ან პაროლი არასწორია' : error.message);
+            setIsLoading(false);
+        } else {
+            navigate('/admin');
+        }
     };
 
     return (
@@ -72,6 +76,25 @@ const Login = () => {
                 {/* Form */}
                 <form onSubmit={handleLogin} className="flex flex-col gap-6">
                     <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">მომხმარებლის სახელი</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => {
+                                setUsername(e.target.value);
+                                setError('');
+                            }}
+                            placeholder="შეიყვანეთ მომხმარებლის სახელი"
+                            className={`form-input ${error ? 'error' : ''}`}
+                            style={{
+                                background: error ? 'rgba(239, 68, 68, 0.05)' : undefined
+                            }}
+                            disabled={isLoading}
+                            required
+                        />
+                    </div>
+                    
+                    <div className="form-group" style={{ marginBottom: 0 }}>
                         <label className="form-label">პაროლი</label>
                         <div style={{ position: 'relative' }}>
                             <input
@@ -88,6 +111,7 @@ const Login = () => {
                                     background: error ? 'rgba(239, 68, 68, 0.05)' : undefined
                                 }}
                                 disabled={isLoading}
+                                required
                             />
                             <button
                                 type="button"

@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUp, Instagram, Facebook, Twitter, Mail } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { useContent } from '../context/ContentContext';
 
 const Footer = () => {
+    const { content } = useContent();
     const currentYear = new Date().getFullYear();
 
     const scrollToTop = () => {
@@ -12,32 +14,11 @@ const Footer = () => {
         });
     };
 
-    const socialLinks = [
-        {
-            icon: Instagram,
-            href: 'https://instagram.com',
-            label: 'Instagram',
-            color: '#E4405F'
-        },
-        {
-            icon: Facebook,
-            href: 'https://facebook.com',
-            label: 'Facebook',
-            color: '#1877F2'
-        },
-        {
-            icon: Twitter,
-            href: 'https://twitter.com',
-            label: 'Twitter',
-            color: '#1DA1F2'
-        },
-        {
-            icon: Mail,
-            href: 'mailto:contact@zhanaananidze.com',
-            label: 'Email',
-            color: '#EA4335'
-        },
-    ];
+    // Helper to get Lucide icon component by name, fallback to a default if not found
+    const getIconComponent = (iconName) => {
+        const Icon = LucideIcons[iconName];
+        return Icon || LucideIcons.Link; 
+    };
 
     return (
         <footer className="footer">
@@ -54,28 +35,31 @@ const Footer = () => {
                         viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
                     >
-                        {socialLinks.map((social, index) => (
-                            <motion.a
-                                key={social.label}
-                                href={social.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="social-icon"
-                                aria-label={social.label}
-                                initial={{ opacity: 0, scale: 0 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                                whileHover={{
-                                    scale: 1.15,
-                                    backgroundColor: social.color,
-                                    borderColor: social.color
-                                }}
-                                whileTap={{ scale: 0.95 }}
-                            >
-                                <social.icon size={20} aria-hidden="true" />
-                            </motion.a>
-                        ))}
+                        {content.socialLinks?.map((social, index) => {
+                            const IconComponent = getIconComponent(social.icon_name);
+                            return (
+                                <motion.a
+                                    key={social.id || social.platform_name}
+                                    href={social.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="social-icon"
+                                    aria-label={social.platform_name}
+                                    initial={{ opacity: 0, scale: 0 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: index * 0.1 }}
+                                    whileHover={{
+                                        scale: 1.15,
+                                        backgroundColor: 'var(--accent-gold)',
+                                        borderColor: 'var(--accent-gold)'
+                                    }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <IconComponent size={20} aria-hidden="true" />
+                                </motion.a>
+                            );
+                        })}
                     </motion.div>
 
                     {/* Copyright Text */}
@@ -105,7 +89,7 @@ const Footer = () => {
                         whileHover={{ y: -3 }}
                         whileTap={{ scale: 0.95 }}
                     >
-                        <ArrowUp size={16} aria-hidden="true" />
+                        <LucideIcons.ArrowUp size={16} aria-hidden="true" />
                         <span>ზემოთ დაბრუნება</span>
                     </motion.button>
                 </div>

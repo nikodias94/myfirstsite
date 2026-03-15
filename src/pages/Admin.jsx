@@ -5,22 +5,68 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     LogOut, Trash2, Edit, Plus, Download, Upload, Save, X,
     FileText, Feather, Globe, Star, BookText, LayoutDashboard,
-    ChevronRight, CheckCircle
+    ChevronRight, CheckCircle, Home as HomeIcon, Image as ImageIcon, Link as LinkIcon, Share2 as ShareIcon, User
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const Admin = () => {
-    const { content, addItem, updateItem, deleteItem, importData } = useContent();
+    const { content, addItem, updateItem, deleteItem, updateHomepageSettings, importData } = useContent();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('poems');
     const [editingItem, setEditingItem] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const fileInputRef = useRef(null);
+    const homeImageInputRef = useRef(null);
+    const aboutImageInputRef = useRef(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadingAboutImage, setUploadingAboutImage] = useState(false);
 
     // Form State
-    const [formData, setFormData] = useState({ title: '', content: '', date: '' });
+    const [formData, setFormData] = useState({ title: '', content: '', date: '', path: '', order_index: 0, platform_name: '', url: '', icon_name: '' });
+    
+    // Homepage Settings State
+    const [homeSettings, setHomeSettings] = useState({
+        name: content.about?.name || '',
+        bio: content.about?.bio || '',
+        quote: content.about?.quote || '',
+        heroImage: content.about?.heroImage || '',
+        aboutTitle: content.about?.aboutTitle || '',
+        aboutDescription: content.about?.aboutDescription || '',
+        aboutImage: content.about?.aboutImage || '',
+        aboutBio: content.about?.aboutBio || '',
+        aboutQuote: content.about?.aboutQuote || '',
+        contactEmail: content.about?.contactEmail || '',
+        contactPhone: content.about?.contactPhone || '',
+        contactAddress: content.about?.contactAddress || '',
+        contactText: content.about?.contactText || '',
+    });
+
+    // Update local state when content loads
+    React.useEffect(() => {
+        if (content.about) {
+            setHomeSettings({
+                name: content.about.name || '',
+                bio: content.about.bio || '',
+                quote: content.about.quote || '',
+                heroImage: content.about.heroImage || '',
+                aboutTitle: content.about.aboutTitle || '',
+                aboutDescription: content.about.aboutDescription || '',
+                aboutImage: content.about.aboutImage || '',
+                aboutBio: content.about.aboutBio || '',
+                aboutQuote: content.about.aboutQuote || '',
+                contactEmail: content.about.contactEmail || '',
+                contactPhone: content.about.contactPhone || '',
+                contactAddress: content.about.contactAddress || '',
+                contactText: content.about.contactText || '',
+            });
+        }
+    }, [content.about]);
 
     const categories = [
+        { id: 'homepage', label: 'მთავარი გვერდი', icon: HomeIcon, color: '#f43f5e' },
+        { id: 'navigation', label: 'ნავიგაცია', icon: LinkIcon, color: '#2dd4bf' },
+        { id: 'socialLinks', label: 'სოციალური ქსელები', icon: ShareIcon, color: '#ec4899' },
         { id: 'poems', label: 'პოეზია', icon: Feather, color: '#c9a96e' },
         { id: 'poemsEn', label: 'Poems (En)', icon: Globe, color: '#60a5fa' },
         { id: 'translations', label: 'თარგმანი', icon: FileText, color: '#a78bfa' },
@@ -28,8 +74,8 @@ const Admin = () => {
         { id: 'prose', label: 'პროზა', icon: BookText, color: '#4ade80' },
     ];
 
-    const handleLogout = () => {
-        localStorage.removeItem('isAuthenticated');
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
         navigate('/login');
     };
 
@@ -63,16 +109,26 @@ const Admin = () => {
         if (item) {
             setEditingItem(item);
             setFormData({
-                title: item.title,
-                content: item.content,
-                date: item.date || new Date().toISOString().split('T')[0]
+                title: item.title || '',
+                content: item.content || '',
+                date: item.date || new Date().toISOString().split('T')[0],
+                path: item.path || '',
+                order_index: item.order_index || 0,
+                platform_name: item.platform_name || '',
+                url: item.url || '',
+                icon_name: item.icon_name || ''
             });
         } else {
             setEditingItem(null);
             setFormData({
                 title: '',
                 content: '',
-                date: new Date().toISOString().split('T')[0]
+                date: new Date().toISOString().split('T')[0],
+                path: '',
+                order_index: 0,
+                platform_name: '',
+                url: '',
+                icon_name: ''
             });
         }
         setIsFormOpen(true);
@@ -89,6 +145,73 @@ const Admin = () => {
         setEditingItem(null);
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
+    };
+
+    const handleHomeSettingsSubmit = async (e) => {
+        e.preventDefault();
+        const success = await updateHomepageSettings(homeSettings);
+        if (success) {
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } else {
+            alert('შეცდომა შენახვისას');
+        }
+    };
+
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setUploadingImage(true);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `hero_${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from('homepage_assets')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage
+                .from('homepage_assets')
+                .getPublicUrl(filePath);
+
+            setHomeSettings(prev => ({ ...prev, heroImage: data.publicUrl }));
+        } catch (error) {
+            alert('ფოტოს ატვირთვა ვერ მოხერხდა: ' + error.message);
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
+    const handleAboutImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setUploadingAboutImage(true);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `about_${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from('homepage_assets')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage
+                .from('homepage_assets')
+                .getPublicUrl(filePath);
+
+            setHomeSettings(prev => ({ ...prev, aboutImage: data.publicUrl }));
+        } catch (error) {
+            alert('ფოტოს ატვირთვა ვერ მოხერხდა: ' + error.message);
+        } finally {
+            setUploadingAboutImage(false);
+        }
     };
 
     const currentCategory = categories.find(c => c.id === activeTab);
@@ -183,10 +306,12 @@ const Admin = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
                 className="admin-stats"
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}
             >
                 {categories.map((cat) => {
                     const Icon = cat.icon;
-                    const count = content[cat.id]?.length || 0;
+                    // For homepage, we don't really have a 'count' of items, just pass 1 or 'Settings'
+                    const count = cat.id === 'homepage' ? '⚙️' : (content[cat.id]?.length || 0);
                     return (
                         <motion.div
                             key={cat.id}
@@ -199,7 +324,7 @@ const Admin = () => {
                             }}
                         >
                             <Icon size={20} style={{ color: cat.color, marginBottom: '0.5rem' }} />
-                            <div className="admin-stat-number">{count}</div>
+                            <div className="admin-stat-number" style={{ fontSize: cat.id === 'homepage' ? '1.5rem' : '2rem' }}>{count}</div>
                             <div className="admin-stat-label">{cat.label}</div>
                         </motion.div>
                     );
@@ -237,27 +362,248 @@ const Admin = () => {
                     <div className="flex items-center gap-3">
                         <CurrentIcon size={24} style={{ color: 'var(--accent-gold)' }} />
                         <h3 style={{ fontSize: 'var(--text-xl)', margin: 0 }}>
-                            {currentCategory?.label} - სია
+                            {activeTab === 'homepage' ? 'მთავარი გვერდის პარამეტრები' : `${currentCategory?.label} - სია`}
                         </h3>
-                        <span
-                            className="badge"
-                            style={{
-                                background: 'var(--accent-gold-dim)',
-                                color: 'var(--accent-gold)'
-                            }}
-                        >
-                            {content[activeTab]?.length || 0}
-                        </span>
+                        {activeTab !== 'homepage' && (
+                            <span
+                                className="badge"
+                                style={{
+                                    background: 'var(--accent-gold-dim)',
+                                    color: 'var(--accent-gold)'
+                                }}
+                            >
+                                {content[activeTab]?.length || 0}
+                            </span>
+                        )}
                     </div>
-                    <motion.button
-                        onClick={() => openForm()}
-                        className="btn btn-primary"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                    >
-                        <Plus size={18} /> დამატება
-                    </motion.button>
+                    {activeTab !== 'homepage' && (
+                        <motion.button
+                            onClick={() => openForm()}
+                            className="btn btn-primary"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <Plus size={18} /> დამატება
+                        </motion.button>
+                    )}
                 </div>
+
+                {/* Homepage Settings Form */}
+                {activeTab === 'homepage' && (
+                     <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="card mb-8"
+                        style={{ border: '1px solid var(--accent-gold)' }}
+                     >
+                        <form onSubmit={handleHomeSettingsSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">ავტორის სახელი</label>
+                                <input
+                                    type="text"
+                                    value={homeSettings.name}
+                                    onChange={e => setHomeSettings({ ...homeSettings, name: e.target.value })}
+                                    className="form-input"
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">ბიოგრაფია (მთავარ გვერდზე ანიმაციით გამოსაჩენი)</label>
+                                <textarea
+                                    rows="4"
+                                    value={homeSettings.bio}
+                                    onChange={e => setHomeSettings({ ...homeSettings, bio: e.target.value })}
+                                    className="form-textarea"
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">ციტატა</label>
+                                <input
+                                    type="text"
+                                    value={homeSettings.quote}
+                                    onChange={e => setHomeSettings({ ...homeSettings, quote: e.target.value })}
+                                    className="form-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">ფონის ფოტო (Hero Image)</label>
+                                {homeSettings.heroImage && (
+                                    <div className="mb-4" style={{ position: 'relative', width: '200px', height: '120px', borderRadius: '8px', overflow: 'hidden' }}>
+                                        <img src={homeSettings.heroImage} alt="Hero preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </div>
+                                )}
+                                <input
+                                    type="file"
+                                    ref={homeImageInputRef}
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                />
+                                <div className="flex gap-4">
+                                    <motion.button
+                                        type="button"
+                                        onClick={() => homeImageInputRef.current.click()}
+                                        className="btn btn-outline"
+                                        disabled={uploadingImage}
+                                    >
+                                        <ImageIcon size={18} /> {uploadingImage ? 'იტვირთება...' : 'ფოტოს ატვირთვა'}
+                                    </motion.button>
+                                    {homeSettings.heroImage && (
+                                        <motion.button
+                                            type="button"
+                                            onClick={() => setHomeSettings({ ...homeSettings, heroImage: '' })}
+                                            className="btn btn-danger"
+                                        >
+                                            <Trash2 size={18} /> ფოტოს წაშლა
+                                        </motion.button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* About Section Divider */}
+                            <div style={{ borderTop: '1px solid var(--border-color)', margin: '2rem 0 1.5rem', paddingTop: '1.5rem' }}>
+                                <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <User size={18} /> 'ჩვენს შესახებ' სექცია
+                                </h4>
+                                <div className="form-group">
+                                    <label className="form-label">სექციის სათაური</label>
+                                    <input
+                                        type="text"
+                                        value={homeSettings.aboutTitle}
+                                        onChange={e => setHomeSettings({ ...homeSettings, aboutTitle: e.target.value })}
+                                        className="form-input"
+                                        placeholder="მაგ: ჩემს შესახებ"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">აღწერის ტექსტი</label>
+                                    <textarea
+                                        rows="6"
+                                        value={homeSettings.aboutDescription}
+                                        onChange={e => setHomeSettings({ ...homeSettings, aboutDescription: e.target.value })}
+                                        className="form-textarea"
+                                        placeholder="განავრითეთ თქვენი თავი შესახებ..."
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">ფოტო (არასავალდებულო)</label>
+                                    {homeSettings.aboutImage && (
+                                        <div className="mb-4" style={{ position: 'relative', width: '200px', height: '200px', borderRadius: '8px', overflow: 'hidden' }}>
+                                            <img src={homeSettings.aboutImage} alt="About preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        ref={aboutImageInputRef}
+                                        onChange={handleAboutImageUpload}
+                                        className="hidden"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                    />
+                                    <div className="flex gap-4">
+                                        <motion.button
+                                            type="button"
+                                            onClick={() => aboutImageInputRef.current.click()}
+                                            className="btn btn-outline"
+                                            disabled={uploadingAboutImage}
+                                        >
+                                            <ImageIcon size={18} /> {uploadingAboutImage ? 'იტვირთება...' : 'ფოტოს ატვირთვა'}
+                                        </motion.button>
+                                        {homeSettings.aboutImage && (
+                                            <motion.button
+                                                type="button"
+                                                onClick={() => setHomeSettings({ ...homeSettings, aboutImage: '' })}
+                                                className="btn btn-danger"
+                                            >
+                                                <Trash2 size={18} /> ფოტოს წაშლა
+                                            </motion.button>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="form-group mt-4">
+                                    <label className="form-label">ბიოგრაფია (სრული, 'ჩვენს შესახებ' გვერდისთვის)</label>
+                                    <textarea
+                                        rows="6"
+                                        value={homeSettings.aboutBio}
+                                        onChange={e => setHomeSettings({ ...homeSettings, aboutBio: e.target.value })}
+                                        className="form-textarea"
+                                        placeholder="სრული ბიოგრაფიული ტექსტი..."
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">ციტატა ('ჩვენს შესახებ' გვერდისთვის)</label>
+                                    <input
+                                        type="text"
+                                        value={homeSettings.aboutQuote}
+                                        onChange={e => setHomeSettings({ ...homeSettings, aboutQuote: e.target.value })}
+                                        className="form-input"
+                                        placeholder="პოეზია ჟანასთვის არ არის მხოლოდ სიტყვები..."
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Contact Section Divider */}
+                            <div style={{ borderTop: '1px solid var(--border-color)', margin: '2rem 0 1.5rem', paddingTop: '1.5rem' }}>
+                                <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <User size={18} /> 'კონტაქტი' სექცია
+                                </h4>
+                                <div className="form-group">
+                                    <label className="form-label">ელ. ფოსტა</label>
+                                    <input
+                                        type="email"
+                                        value={homeSettings.contactEmail}
+                                        onChange={e => setHomeSettings({ ...homeSettings, contactEmail: e.target.value })}
+                                        className="form-input"
+                                        placeholder="მაგ: info@domain.com"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">ტელეფონი</label>
+                                    <input
+                                        type="text"
+                                        value={homeSettings.contactPhone}
+                                        onChange={e => setHomeSettings({ ...homeSettings, contactPhone: e.target.value })}
+                                        className="form-input"
+                                        placeholder="მაგ: +995 555 12 34 56"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">მისამართი</label>
+                                    <input
+                                        type="text"
+                                        value={homeSettings.contactAddress}
+                                        onChange={e => setHomeSettings({ ...homeSettings, contactAddress: e.target.value })}
+                                        className="form-input"
+                                        placeholder="მაგ: თბილისი, საქართველო"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">კონტაქტის ტექსტი</label>
+                                    <textarea
+                                        rows="4"
+                                        value={homeSettings.contactText}
+                                        onChange={e => setHomeSettings({ ...homeSettings, contactText: e.target.value })}
+                                        className="form-textarea"
+                                        placeholder="მოგვწერეთ ნებისმიერ საკითხზე..."
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 mt-6">
+                                <motion.button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <Save size={18} /> პარამეტრების შენახვა
+                                </motion.button>
+                            </div>
+                        </form>
+                     </motion.div>
+                )}
 
                 {/* Input Form */}
                 <AnimatePresence>
@@ -282,37 +628,115 @@ const Admin = () => {
                                 </button>
                             </div>
                             <form onSubmit={handleSubmit}>
-                                <div className="form-group">
-                                    <label className="form-label">სათაური</label>
-                                    <input
-                                        type="text"
-                                        placeholder="შეიყვანეთ სათაური"
-                                        value={formData.title}
-                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                        className="form-input"
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">ტექსტი</label>
-                                    <textarea
-                                        rows="10"
-                                        placeholder="შეიყვანეთ ტექსტი"
-                                        value={formData.content}
-                                        onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                        className="form-textarea"
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">თარიღი</label>
-                                    <input
-                                        type="date"
-                                        value={formData.date}
-                                        onChange={e => setFormData({ ...formData, date: e.target.value })}
-                                        className="form-input"
-                                    />
-                                </div>
+                                {activeTab === 'navigation' ? (
+                                    <>
+                                        <div className="form-group">
+                                            <label className="form-label">სათაური (დასახელება მენიუში)</label>
+                                            <input
+                                                type="text"
+                                                placeholder="სათაური"
+                                                value={formData.title}
+                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                className="form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">ბმული (Path)</label>
+                                            <input
+                                                type="text"
+                                                placeholder="მაგ: /poetry ან /about"
+                                                value={formData.path}
+                                                onChange={e => setFormData({ ...formData, path: e.target.value })}
+                                                className="form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">მიმდევრობა (Order Index)</label>
+                                            <input
+                                                type="number"
+                                                value={formData.order_index}
+                                                onChange={e => setFormData({ ...formData, order_index: e.target.value })}
+                                                className="form-input"
+                                                required
+                                            />
+                                        </div>
+                                    </>
+                                ) : activeTab === 'socialLinks' ? (
+                                    <>
+                                        <div className="form-group">
+                                            <label className="form-label">პლატფორმის დასახელება</label>
+                                            <input
+                                                type="text"
+                                                placeholder="მაგ: Facebook"
+                                                value={formData.platform_name}
+                                                onChange={e => setFormData({ ...formData, platform_name: e.target.value })}
+                                                className="form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">ბმული (URL)</label>
+                                            <input
+                                                type="url"
+                                                placeholder="https://facebook.com/..."
+                                                value={formData.url}
+                                                onChange={e => setFormData({ ...formData, url: e.target.value })}
+                                                className="form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">აიქონის სახელი (Lucide React)</label>
+                                            <input
+                                                type="text"
+                                                placeholder="მაგ: Facebook, Instagram, Twitter, Mail"
+                                                value={formData.icon_name}
+                                                onChange={e => setFormData({ ...formData, icon_name: e.target.value })}
+                                                className="form-input"
+                                                required
+                                            />
+                                            <p className="footer-subtext" style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                                                იხილეთ <a href="https://lucide.dev/icons" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-gold)' }}>Lucide React</a> ხელმისაწვდომი ხატულებისთვის.
+                                            </p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="form-group">
+                                            <label className="form-label">სათაური</label>
+                                            <input
+                                                type="text"
+                                                placeholder="შეიყვანეთ სათაური"
+                                                value={formData.title}
+                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                className="form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">ტექსტი</label>
+                                            <textarea
+                                                rows="10"
+                                                placeholder="შეიყვანეთ ტექსტი"
+                                                value={formData.content}
+                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                                className="form-textarea"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">თარიღი</label>
+                                            <input
+                                                type="date"
+                                                value={formData.date}
+                                                onChange={e => setFormData({ ...formData, date: e.target.value })}
+                                                className="form-input"
+                                            />
+                                        </div>
+                                    </>
+                                )}
                                 <div className="flex gap-4">
                                     <motion.button
                                         type="submit"
@@ -337,76 +761,83 @@ const Admin = () => {
                     )}
                 </AnimatePresence>
 
-                {/* List */}
-                <div className="flex flex-col gap-4">
-                    {content[activeTab]?.map((item, index) => (
-                        <motion.div
-                            key={item.id}
-                            className="admin-item"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                        >
-                            <div className="flex-1 min-w-0">
-                                <h4 style={{
-                                    fontSize: 'var(--text-lg)',
-                                    fontWeight: 600,
-                                    marginBottom: '0.5rem',
-                                    color: 'var(--text-primary)'
-                                }}>
-                                    {item.title}
-                                </h4>
-                                <p style={{
-                                    fontSize: 'var(--text-sm)',
-                                    color: 'var(--text-muted)',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
-                                }}>
-                                    {item.date} • {item.content.substring(0, 80)}...
-                                </p>
-                            </div>
-                            <div className="item-actions">
-                                <motion.button
-                                    onClick={() => openForm(item)}
-                                    className="action-icon-btn btn-edit"
-                                    title="რედაქტირება"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <Edit size={18} />
-                                </motion.button>
-                                <motion.button
-                                    onClick={() => {
-                                        if (window.confirm('ნამდვილად გსურთ წაშლა?')) {
-                                            deleteItem(activeTab, item.id);
-                                            setShowSuccess(true);
-                                            setTimeout(() => setShowSuccess(false), 3000);
+                {/* List for Content Items */}
+                {activeTab !== 'homepage' && (
+                    <div className="flex flex-col gap-4">
+                        {content[activeTab]?.map((item, index) => (
+                            <motion.div
+                                key={item.id}
+                                className="admin-item"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                            >
+                                <div className="flex-1 min-w-0">
+                                    <h4 style={{
+                                        fontSize: 'var(--text-lg)',
+                                        fontWeight: 600,
+                                        marginBottom: '0.5rem',
+                                        color: 'var(--text-primary)'
+                                    }}>
+                                        {activeTab === 'socialLinks' ? item.platform_name : item.title}
+                                    </h4>
+                                    <p style={{
+                                        fontSize: 'var(--text-sm)',
+                                        color: 'var(--text-muted)',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}>
+                                        {activeTab === 'navigation' 
+                                            ? `ბმული: ${item.path} | მიმდევრობა: ${item.order_index}`
+                                            : activeTab === 'socialLinks'
+                                                ? `ბმული: ${item.url} | აიქონი: ${item.icon_name}`
+                                                : `${item.date} • ${item.content?.substring(0, 80) || ''}...`
                                         }
-                                    }}
-                                    className="action-icon-btn btn-delete"
-                                    title="წაშლა"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <Trash2 size={18} />
-                                </motion.button>
-                            </div>
-                        </motion.div>
-                    ))}
-                    {content[activeTab]?.length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="empty-state"
-                            style={{ padding: '3rem 1rem' }}
-                        >
-                            <p className="text-muted italic">
-                                ამ კატეგორიაში ჩანაწერები არ არის. დაამატეთ პირველი!
-                            </p>
-                        </motion.div>
-                    )}
-                </div>
+                                    </p>
+                                </div>
+                                <div className="item-actions">
+                                    <motion.button
+                                        onClick={() => openForm(item)}
+                                        className="action-icon-btn btn-edit"
+                                        title="რედაქტირება"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        <Edit size={18} />
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => {
+                                            if (window.confirm('ნამდვილად გსურთ წაშლა?')) {
+                                                deleteItem(activeTab, item.id);
+                                                setShowSuccess(true);
+                                                setTimeout(() => setShowSuccess(false), 3000);
+                                            }
+                                        }}
+                                        className="action-icon-btn btn-delete"
+                                        title="წაშლა"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        <Trash2 size={18} />
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        ))}
+                        {content[activeTab]?.length === 0 && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="empty-state"
+                                style={{ padding: '3rem 1rem' }}
+                            >
+                                <p className="text-muted italic">
+                                    ამ კატეგორიაში ჩანაწერები არ არის. დაამატეთ პირველი!
+                                </p>
+                            </motion.div>
+                        )}
+                    </div>
+                )}
             </motion.div>
         </div>
     );

@@ -1,16 +1,21 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useContent } from '../context/ContentContext';
 import { motion } from 'framer-motion';
-import PoemCard from '../components/PoemCard';
 import { Globe, PenLine } from 'lucide-react';
+import ContentModal from '../components/ContentModal';
+import useAutoOpenItem from '../hooks/useAutoOpenItem';
+import PoemCard from '../components/PoemCard';
 
 const PoemsEn = () => {
     const { content } = useContent();
     const { poemsEn } = content;
+    const [selectedItem, setSelectedItem] = useState(null);
+
+    const openItem = useCallback((item) => setSelectedItem(item), []);
+    useAutoOpenItem(poemsEn, openItem);
 
     return (
         <div className="container section-sm">
-            {/* Section Title */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -23,30 +28,37 @@ const PoemsEn = () => {
                 </h2>
             </motion.div>
 
-            {/* Poems Grid */}
             {poemsEn.length > 0 ? (
                 <div className="grid-poems">
                     {poemsEn.map((poem, index) => (
-                        <PoemCard key={poem.id} item={poem} index={index} />
+                        <PoemCard
+                            key={poem.id}
+                            item={poem}
+                            index={index}
+                            onOpenModal={() => setSelectedItem(poem)}
+                        />
                     ))}
                 </div>
             ) : (
-                /* Empty State */
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5 }}
                     className="empty-state"
                 >
-                    <div className="empty-state-icon">
-                        <PenLine size={48} />
-                    </div>
+                    <div className="empty-state-icon"><PenLine size={48} /></div>
                     <h3 className="empty-state-title">No Poems Available Yet</h3>
-                    <p className="empty-state-text">
-                        English poems will appear here soon. Please check back later!
-                    </p>
+                    <p className="empty-state-text">English poems will appear here soon. Please check back later!</p>
                 </motion.div>
             )}
+
+            <ContentModal
+                isOpen={!!selectedItem}
+                onClose={() => setSelectedItem(null)}
+                title={selectedItem?.title}
+                content={selectedItem?.content}
+                date={selectedItem?.date}
+            />
         </div>
     );
 };

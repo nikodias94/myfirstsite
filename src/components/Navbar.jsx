@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Feather } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useContent } from '../context/ContentContext';
+import SearchBar from './SearchBar';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -38,14 +40,7 @@ const Navbar = () => {
         };
     }, [isOpen]);
 
-    const navLinks = [
-        { name: 'მთავარი', path: '/' },
-        { name: 'პოეზია', path: '/poetry' },
-        { name: 'Poems in English', path: '/poems-en' },
-        { name: 'თარგმანი', path: '/translations' },
-        { name: 'რეცენზია', path: '/reviews' },
-        { name: 'პროზა', path: '/prose' },
-    ];
+    const { content } = useContent();
 
     const isActive = (path) => location.pathname === path;
 
@@ -63,18 +58,23 @@ const Navbar = () => {
 
                 {/* Desktop Menu */}
                 <div className="nav-links" role="menubar">
-                    {navLinks.map((link) => (
+                    {content.navigation.map((link) => (
                         <Link
-                            key={link.path}
+                            key={link.id || link.path}
                             to={link.path}
                             role="menuitem"
                             className={`nav-link ${isActive(link.path) ? 'active' : ''}`}
                             aria-current={isActive(link.path) ? 'page' : undefined}
                         >
-                            <span className="nav-link-text">{link.name}</span>
+                            <span className="nav-link-text">{link.title}</span>
                             <span className="nav-link-underline" aria-hidden="true" />
                         </Link>
                     ))}
+                </div>
+
+                {/* Search Bar - Desktop */}
+                <div className="nav-search">
+                    <SearchBar />
                 </div>
 
                 {/* Mobile Menu Button */}
@@ -143,9 +143,21 @@ const Navbar = () => {
                             aria-modal="true"
                         >
                             <div className="mobile-menu-inner">
-                                {navLinks.map((link, index) => (
+                                {/* Search bar inside mobile menu */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.05 }}
+                                    className="mobile-search-wrapper"
+                                >
+                                    <SearchBar onNavigate={closeMenu} />
+                                </motion.div>
+
+                                <div className="mobile-menu-divider" />
+
+                                {content.navigation.map((link, index) => (
                                     <motion.div
-                                        key={link.path}
+                                        key={link.id || link.path}
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: index * 0.05 + 0.1 }}
@@ -156,14 +168,15 @@ const Navbar = () => {
                                             className={`mobile-link ${isActive(link.path) ? 'active' : ''}`}
                                             aria-current={isActive(link.path) ? 'page' : undefined}
                                         >
-                                            {link.name}
+                                            {link.title}
                                         </Link>
                                     </motion.div>
                                 ))}
+
                                 <motion.div
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: navLinks.length * 0.05 + 0.1 }}
+                                    transition={{ delay: content.navigation.length * 0.05 + 0.1 }}
                                 >
                                     <Link
                                         to="/admin"

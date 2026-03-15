@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, Calendar, ChevronRight } from 'lucide-react';
 
-const PoemCard = ({ item, index = 0 }) => {
+const PoemCard = ({ item, index = 0, onOpenModal }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [showFullContent, setShowFullContent] = useState(false);
 
@@ -43,6 +43,7 @@ const PoemCard = ({ item, index = 0 }) => {
 
     return (
         <motion.article
+            id={`item-card-${item.id}`}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
@@ -104,7 +105,7 @@ const PoemCard = ({ item, index = 0 }) => {
                 {/* View Full Button */}
                 {hasMoreContent && (
                     <motion.button
-                        onClick={() => setShowFullContent(!showFullContent)}
+                        onClick={onOpenModal ? onOpenModal : () => setShowFullContent(!showFullContent)}
                         className="btn btn-outline btn-sm poem-view-btn"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -112,20 +113,22 @@ const PoemCard = ({ item, index = 0 }) => {
                         aria-label={showFullContent ? "ნაკლების ჩვენება" : "სრულად ნახვა"}
                     >
                         <Eye size={16} aria-hidden="true" />
-                        <span>{showFullContent ? 'ნაკლების ჩვენება' : 'სრულად ნახვა'}</span>
-                        <motion.span
-                            animate={{ rotate: showFullContent ? 180 : 0 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <ChevronRight
-                                size={16}
-                                aria-hidden="true"
-                                style={{
-                                    transform: showFullContent ? 'rotate(-90deg)' : 'rotate(90deg)',
-                                    transition: 'transform 0.2s ease'
-                                }}
-                            />
-                        </motion.span>
+                        <span>{onOpenModal ? 'სრულად ნახვა' : (showFullContent ? 'ნაკლების ჩვენება' : 'სრულად ნახვა')}</span>
+                        {!onOpenModal && (
+                            <motion.span
+                                animate={{ rotate: showFullContent ? 180 : 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <ChevronRight
+                                    size={16}
+                                    aria-hidden="true"
+                                    style={{
+                                        transform: showFullContent ? 'rotate(-90deg)' : 'rotate(90deg)',
+                                        transition: 'transform 0.2s ease'
+                                    }}
+                                />
+                            </motion.span>
+                        )}
                     </motion.button>
                 )}
             </footer>
