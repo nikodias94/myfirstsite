@@ -41,6 +41,8 @@ export const ContentProvider = ({ children }) => {
             contactPhone: homepageSettingsRes.data.contact_phone || '',
             contactAddress: homepageSettingsRes.data.contact_address || '',
             contactText: homepageSettingsRes.data.contact_text || '',
+            typingWords: homepageSettingsRes.data.typing_words || 'პოეტი,პროზაიკოსი,მთარგმნელი,შემოქმედი',
+            footerText: homepageSettingsRes.data.footer_text || 'Created with ❤️ & React',
           } : (prev.about || {});
 
           return {
@@ -188,7 +190,9 @@ export const ContentProvider = ({ children }) => {
         contact_email: settings.contactEmail,
         contact_phone: settings.contactPhone,
         contact_address: settings.contactAddress,
-        contact_text: settings.contactText
+        contact_text: settings.contactText,
+        typing_words: settings.typingWords,
+        footer_text: settings.footerText
       })
       .eq('id', 1)
       .select();
@@ -215,6 +219,8 @@ export const ContentProvider = ({ children }) => {
           contactPhone: data[0].contact_phone || '',
           contactAddress: data[0].contact_address || '',
           contactText: data[0].contact_text || '',
+          typingWords: data[0].typing_words || 'პოეტი,პროზაიკოსი,მთარგმნელი,შემოქმედი',
+          footerText: data[0].footer_text || 'Created with ❤️ & React',
         }
       }));
     }

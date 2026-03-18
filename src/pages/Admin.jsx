@@ -28,18 +28,13 @@ const Admin = () => {
     // Homepage Settings State
     const [homeSettings, setHomeSettings] = useState({
         name: content.about?.name || '',
-        bio: content.about?.bio || '',
         quote: content.about?.quote || '',
         heroImage: content.about?.heroImage || '',
         aboutTitle: content.about?.aboutTitle || '',
         aboutDescription: content.about?.aboutDescription || '',
         aboutImage: content.about?.aboutImage || '',
-        aboutBio: content.about?.aboutBio || '',
-        aboutQuote: content.about?.aboutQuote || '',
-        contactEmail: content.about?.contactEmail || '',
-        contactPhone: content.about?.contactPhone || '',
-        contactAddress: content.about?.contactAddress || '',
-        contactText: content.about?.contactText || '',
+        typingWords: content.about?.typingWords || 'პოეტი,პროზაიკოსი,მთარგმნელი,შემოქმედი',
+        footerText: content.about?.footerText || 'Created with ❤️ & React',
     });
 
     // Update local state when content loads
@@ -47,18 +42,13 @@ const Admin = () => {
         if (content.about) {
             setHomeSettings({
                 name: content.about.name || '',
-                bio: content.about.bio || '',
                 quote: content.about.quote || '',
                 heroImage: content.about.heroImage || '',
                 aboutTitle: content.about.aboutTitle || '',
                 aboutDescription: content.about.aboutDescription || '',
                 aboutImage: content.about.aboutImage || '',
-                aboutBio: content.about.aboutBio || '',
-                aboutQuote: content.about.aboutQuote || '',
-                contactEmail: content.about.contactEmail || '',
-                contactPhone: content.about.contactPhone || '',
-                contactAddress: content.about.contactAddress || '',
-                contactText: content.about.contactText || '',
+                typingWords: content.about.typingWords || 'პოეტი,პროზაიკოსი,მთარგმნელი,შემოქმედი',
+                footerText: content.about.footerText || 'Created with ❤️ & React',
             });
         }
     }, [content.about]);
@@ -390,19 +380,155 @@ const Admin = () => {
                     )}
                 </div>
 
-                {/* Homepage Settings - Clean Slate */}
+                {/* Homepage Settings Form */}
                 {activeTab === 'homepage' && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="card mb-8"
-                        style={{ border: '1px solid var(--accent-gold)', textAlign: 'center', padding: '4rem 2rem' }}
+                        style={{ border: '1px solid var(--accent-gold)' }}
                     >
-                        <HomeIcon size={48} style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', opacity: 0.6 }} />
-                        <h3 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>მთავარი გვერდის მართვა</h3>
-                        <p style={{ color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto' }}>
-                            ეს სექცია ახლა ცარიელია. გვეტყვით რა ველები გჭირდებათ და ავაწყობთ!
-                        </p>
+                        <form onSubmit={handleHomeSettingsSubmit}>
+
+                            {/* === 1. ავტორის სახელი === */}
+                            <div className="form-group">
+                                <label className="form-label">✏️ ავტორის სახელი</label>
+                                <input
+                                    type="text"
+                                    value={homeSettings.name}
+                                    onChange={e => setHomeSettings({ ...homeSettings, name: e.target.value })}
+                                    className="form-input"
+                                    placeholder="მაგ: ჟანა ანანიძე"
+                                />
+                            </div>
+
+                            {/* === 2. მოძრავი სტრიქონი (Typing Words) === */}
+                            <div className="form-group">
+                                <label className="form-label">⌨️ მოძრავი სტრიქონი (typing ეფექტი)</label>
+                                <input
+                                    type="text"
+                                    value={homeSettings.typingWords}
+                                    onChange={e => setHomeSettings({ ...homeSettings, typingWords: e.target.value })}
+                                    className="form-input"
+                                    placeholder="მაგ: პოეტი,პროზაიკოსი,მთარგმნელი"
+                                />
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.4rem' }}>
+                                    სიტყვები გამოყავით მძიმით. ისინი მომდევნო ეფექტით გამოჩნდება.
+                                </p>
+                            </div>
+
+                            {/* === 3. ციტატა === */}
+                            <div className="form-group">
+                                <label className="form-label">💬 ციტატა (Hero-ის ქვეშ)</label>
+                                <input
+                                    type="text"
+                                    value={homeSettings.quote}
+                                    onChange={e => setHomeSettings({ ...homeSettings, quote: e.target.value })}
+                                    className="form-input"
+                                    placeholder='მაგ: "პოეზია - ეს არის სიტყვებით ხატვა..."'
+                                />
+                            </div>
+
+                            {/* === 4. ფონის ფოტო === */}
+                            <div className="form-group">
+                                <label className="form-label">🖼️ ფონის ფოტო (Hero Image)</label>
+                                {homeSettings.heroImage && (
+                                    <div className="mb-4" style={{ position: 'relative', width: '220px', height: '130px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-gold)' }}>
+                                        <img src={homeSettings.heroImage} alt="Hero preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </div>
+                                )}
+                                <input type="file" ref={homeImageInputRef} onChange={handleImageUpload} accept="image/*" style={{ display: 'none' }} />
+                                <div className="flex gap-4">
+                                    <motion.button type="button" onClick={() => homeImageInputRef.current.click()} className="btn btn-outline" disabled={uploadingImage} whileHover={{ scale: 1.02 }}>
+                                        <ImageIcon size={18} /> {uploadingImage ? 'იტვირთება...' : 'ფოტოს ატვირთვა'}
+                                    </motion.button>
+                                    {homeSettings.heroImage && (
+                                        <motion.button type="button" onClick={() => setHomeSettings({ ...homeSettings, heroImage: '' })} className="btn btn-danger" whileHover={{ scale: 1.02 }}>
+                                            <Trash2 size={18} /> წაშლა
+                                        </motion.button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="divider-gold" style={{ margin: '2rem 0' }} />
+
+                            {/* === 5. ბიოგრაფიის სექცია === */}
+                            <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <User size={18} /> ბიოგრაფიის სექცია
+                            </h4>
+
+                            <div className="form-group">
+                                <label className="form-label">სექციის სათაური</label>
+                                <input
+                                    type="text"
+                                    value={homeSettings.aboutTitle}
+                                    onChange={e => setHomeSettings({ ...homeSettings, aboutTitle: e.target.value })}
+                                    className="form-input"
+                                    placeholder="მაგ: ჩემს შესახებ"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">ბიოგრაფიის ტექსტი</label>
+                                <textarea
+                                    rows="6"
+                                    value={homeSettings.aboutDescription}
+                                    onChange={e => setHomeSettings({ ...homeSettings, aboutDescription: e.target.value })}
+                                    className="form-textarea"
+                                    placeholder="ბიოგრაფიის ტექსტი (ახალი ხაზი = ახალი პარაგრაფი)..."
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">ბიოგრაფიის ფოტო</label>
+                                {homeSettings.aboutImage && (
+                                    <div className="mb-4" style={{ position: 'relative', width: '160px', height: '200px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-gold)' }}>
+                                        <img src={homeSettings.aboutImage} alt="About preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </div>
+                                )}
+                                <input type="file" ref={aboutImageInputRef} onChange={handleAboutImageUpload} accept="image/*" style={{ display: 'none' }} />
+                                <div className="flex gap-4">
+                                    <motion.button type="button" onClick={() => aboutImageInputRef.current.click()} className="btn btn-outline" disabled={uploadingAboutImage} whileHover={{ scale: 1.02 }}>
+                                        <ImageIcon size={18} /> {uploadingAboutImage ? 'იტვირთება...' : 'ფოტოს ატვირთვა'}
+                                    </motion.button>
+                                    {homeSettings.aboutImage && (
+                                        <motion.button type="button" onClick={() => setHomeSettings({ ...homeSettings, aboutImage: '' })} className="btn btn-danger" whileHover={{ scale: 1.02 }}>
+                                            <Trash2 size={18} /> წაშლა
+                                        </motion.button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="divider-gold" style={{ margin: '2rem 0' }} />
+
+                            {/* === 6. Footer ტექსტი === */}
+                            <div className="form-group">
+                                <label className="form-label">🔧 Footer-ის ტექსტი</label>
+                                <input
+                                    type="text"
+                                    value={homeSettings.footerText}
+                                    onChange={e => setHomeSettings({ ...homeSettings, footerText: e.target.value })}
+                                    className="form-input"
+                                    placeholder='მაგ: Created with ❤️ & React'
+                                />
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.4rem' }}>
+                                    გამოჩნდება საიტის ქვეშ (footer-ის მეორე სტრიქონი).
+                                </p>
+                            </div>
+
+                            {/* Save Button */}
+                            <div className="flex gap-4 mt-8">
+                                <motion.button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <Save size={18} /> ყველა ცვლილების შენახვა
+                                </motion.button>
+                            </div>
+
+                        </form>
                     </motion.div>
                 )}
 

@@ -73,7 +73,7 @@ const Footer = () => {
                             © {currentYear} Zhana Ananidze. ყველა უფლება დაცულია.
                         </p>
                         <p className="footer-subtext">
-                            Created with <span className="footer-heart" aria-label="სიყვარული">❤️</span> & React
+                            {content.about?.footerText || 'Created with ❤️ & React'}
                         </p>
                     </motion.div>
 

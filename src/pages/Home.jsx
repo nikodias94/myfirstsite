@@ -5,12 +5,13 @@ import { User, Feather } from 'lucide-react';
 import useTypingEffect from '../hooks/useTypingEffect';
 import PoemOfDay from '../components/PoemOfDay';
 
-const TYPING_WORDS = ['პოეტი', 'პროზაიკოსი', 'მთარგმნელი', 'შემოქმედი'];
-
 const Home = () => {
     const { content } = useContent();
     const { about } = content;
-    const typedWord = useTypingEffect(TYPING_WORDS, { typeSpeed: 90, deleteSpeed: 50, pauseMs: 1600 });
+    const typingWordsList = about.typingWords
+        ? about.typingWords.split(',').map(w => w.trim()).filter(Boolean)
+        : ['პოეტი', 'პროზაიკოსი', 'მთარგმნელი', 'შემოქმედი'];
+    const typedWord = useTypingEffect(typingWordsList, { typeSpeed: 90, deleteSpeed: 50, pauseMs: 1600 });
 
     const heroStyle = about.heroImage ? {
         backgroundImage: `linear-gradient(to bottom, rgba(10, 10, 10, 0.7), rgba(10, 10, 10, 0.95)), url(${about.heroImage})`,
