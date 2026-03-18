@@ -410,16 +410,6 @@ const Admin = () => {
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">ბიოგრაფია (მთავარ გვერდზე ანიმაციით გამოსაჩენი)</label>
-                                <textarea
-                                    rows="4"
-                                    value={homeSettings.bio}
-                                    onChange={e => setHomeSettings({ ...homeSettings, bio: e.target.value })}
-                                    className="form-textarea"
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
                                 <label className="form-label">ციტატა</label>
                                 <input
                                     type="text"
