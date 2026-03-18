@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useContent } from '../context/ContentContext';
+import { 
+    BookOpen, Globe, Languages, Star, BookText, 
+    Feather, User, Award, ChevronDown 
+} from 'lucide-react';
 
 /* ─── Timeline data ─── */
 const timeline = [

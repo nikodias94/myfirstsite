@@ -71,7 +71,7 @@ const Admin = () => {
         { id: 'poemsEn', label: 'Poems (En)', icon: Globe, color: '#60a5fa' },
         { id: 'translations', label: 'თარგმანი', icon: FileText, color: '#a78bfa' },
         { id: 'reviews', label: 'რეცენზია', icon: Star, color: '#fbbf24' },
-        { id: 'prose', label: 'პროზა', icon: BookText, color: '#4ade80' },
+        { id: 'prose', label: 'პოეზია', icon: BookText, color: '#4ade80' },
     ];
 
     const handleLogout = async () => {
@@ -362,7 +362,9 @@ const Admin = () => {
                     <div className="flex items-center gap-3">
                         <CurrentIcon size={24} style={{ color: 'var(--accent-gold)' }} />
                         <h3 style={{ fontSize: 'var(--text-xl)', margin: 0 }}>
-                            {activeTab === 'homepage' ? 'მთავარი გვერდის პარამეტრები' : `${currentCategory?.label} - სია`}
+                            {activeTab === 'homepage' ? 'მთავარი გვერდის პარამეტრები' : 
+                             activeTab === 'pages' ? 'გვერდების რედაქტორი (ჩვენს შესახებ / კონטაქტი)' :
+                             `${currentCategory?.label} - სია`}
                         </h3>
                         {activeTab !== 'homepage' && (
                             <span
@@ -462,148 +464,161 @@ const Admin = () => {
                                 </div>
                             </div>
 
-                            {/* About Section Divider */}
-                            <div style={{ borderTop: '1px solid var(--border-color)', margin: '2rem 0 1.5rem', paddingTop: '1.5rem' }}>
-                                <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <User size={18} /> 'ჩვენს შესახებ' სექცია
-                                </h4>
-                                <div className="form-group">
-                                    <label className="form-label">სექციის სათაური</label>
-                                    <input
-                                        type="text"
-                                        value={homeSettings.aboutTitle}
-                                        onChange={e => setHomeSettings({ ...homeSettings, aboutTitle: e.target.value })}
-                                        className="form-input"
-                                        placeholder="მაგ: ჩემს შესახებ"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">აღწერის ტექსტი</label>
-                                    <textarea
-                                        rows="6"
-                                        value={homeSettings.aboutDescription}
-                                        onChange={e => setHomeSettings({ ...homeSettings, aboutDescription: e.target.value })}
-                                        className="form-textarea"
-                                        placeholder="განავრითეთ თქვენი თავი შესახებ..."
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">ფოტო (არასავალდებულო)</label>
-                                    {homeSettings.aboutImage && (
-                                        <div className="mb-4" style={{ position: 'relative', width: '200px', height: '200px', borderRadius: '8px', overflow: 'hidden' }}>
-                                            <img src={homeSettings.aboutImage} alt="About preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        </div>
-                                    )}
-                                    <input
-                                        type="file"
-                                        ref={aboutImageInputRef}
-                                        onChange={handleAboutImageUpload}
-                                        className="hidden"
-                                        accept="image/*"
-                                        style={{ display: 'none' }}
-                                    />
-                                    <div className="flex gap-4">
-                                        <motion.button
-                                            type="button"
-                                            onClick={() => aboutImageInputRef.current.click()}
-                                            className="btn btn-outline"
-                                            disabled={uploadingAboutImage}
-                                        >
-                                            <ImageIcon size={18} /> {uploadingAboutImage ? 'იტვირთება...' : 'ფოტოს ატვირთვა'}
-                                        </motion.button>
-                                        {homeSettings.aboutImage && (
-                                            <motion.button
-                                                type="button"
-                                                onClick={() => setHomeSettings({ ...homeSettings, aboutImage: '' })}
-                                                className="btn btn-danger"
-                                            >
-                                                <Trash2 size={18} /> ფოტოს წაშლა
-                                            </motion.button>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="form-group mt-4">
-                                    <label className="form-label">ბიოგრაფია (სრული, 'ჩვენს შესახებ' გვერდისთვის)</label>
-                                    <textarea
-                                        rows="6"
-                                        value={homeSettings.aboutBio}
-                                        onChange={e => setHomeSettings({ ...homeSettings, aboutBio: e.target.value })}
-                                        className="form-textarea"
-                                        placeholder="სრული ბიოგრაფიული ტექსტი..."
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">ციტატა ('ჩვენს შესახებ' გვერდისთვის)</label>
-                                    <input
-                                        type="text"
-                                        value={homeSettings.aboutQuote}
-                                        onChange={e => setHomeSettings({ ...homeSettings, aboutQuote: e.target.value })}
-                                        className="form-input"
-                                        placeholder="პოეზია ჟანასთვის არ არის მხოლოდ სიტყვები..."
-                                    />
-                                </div>
-                            </div>
+                             <div className="flex gap-4 mt-8">
+                                 <motion.button
+                                     type="submit"
+                                     className="btn btn-primary"
+                                     whileHover={{ scale: 1.02 }}
+                                     whileTap={{ scale: 0.98 }}
+                                 >
+                                     <Save size={18} /> პარამეტრების შენახვა
+                                 </motion.button>
+                             </div>
 
-                            {/* Contact Section Divider */}
-                            <div style={{ borderTop: '1px solid var(--border-color)', margin: '2rem 0 1.5rem', paddingTop: '1.5rem' }}>
-                                <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <User size={18} /> 'კონტაქტი' სექცია
-                                </h4>
-                                <div className="form-group">
-                                    <label className="form-label">ელ. ფოსტა</label>
-                                    <input
-                                        type="email"
-                                        value={homeSettings.contactEmail}
-                                        onChange={e => setHomeSettings({ ...homeSettings, contactEmail: e.target.value })}
-                                        className="form-input"
-                                        placeholder="მაგ: info@domain.com"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">ტელეფონი</label>
-                                    <input
-                                        type="text"
-                                        value={homeSettings.contactPhone}
-                                        onChange={e => setHomeSettings({ ...homeSettings, contactPhone: e.target.value })}
-                                        className="form-input"
-                                        placeholder="მაგ: +995 555 12 34 56"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">მისამართი</label>
-                                    <input
-                                        type="text"
-                                        value={homeSettings.contactAddress}
-                                        onChange={e => setHomeSettings({ ...homeSettings, contactAddress: e.target.value })}
-                                        className="form-input"
-                                        placeholder="მაგ: თბილისი, საქართველო"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">კონტაქტის ტექსტი</label>
-                                    <textarea
-                                        rows="4"
-                                        value={homeSettings.contactText}
-                                        onChange={e => setHomeSettings({ ...homeSettings, contactText: e.target.value })}
-                                        className="form-textarea"
-                                        placeholder="მოგვწერეთ ნებისმიერ საკითხზე..."
-                                    />
-                                </div>
-                            </div>
+                             <div className="divider-gold" style={{ margin: '3rem 0' }} />
 
-                            <div className="flex gap-4 mt-6">
-                                <motion.button
-                                    type="submit"
-                                    className="btn btn-primary"
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    <Save size={18} /> პარამეტრების შენახვა
-                                </motion.button>
-                            </div>
-                        </form>
-                     </motion.div>
-                )}
+                             {/* About Section */}
+                             <div style={{ marginBottom: '2rem' }}>
+                                 <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                     <User size={18} /> 'ჩვენს შესახებ' გვერდი
+                                 </h4>
+                                 <div className="form-group">
+                                     <label className="form-label">სექციის სათაური</label>
+                                     <input
+                                         type="text"
+                                         value={homeSettings.aboutTitle}
+                                         onChange={e => setHomeSettings({ ...homeSettings, aboutTitle: e.target.value })}
+                                         className="form-input"
+                                         placeholder="მაგ: ჩემს შესახებ"
+                                     />
+                                 </div>
+                                 <div className="form-group">
+                                     <label className="form-label">აღწერის მოკლე ტექსტი (მთავარ გვერდზე)</label>
+                                     <textarea
+                                         rows="4"
+                                         value={homeSettings.aboutDescription}
+                                         onChange={e => setHomeSettings({ ...homeSettings, aboutDescription: e.target.value })}
+                                         className="form-textarea"
+                                         placeholder="განავრითეთ თქვენი თავი შესახებ..."
+                                     />
+                                 </div>
+                                 <div className="form-group">
+                                     <label className="form-label">ფოტო</label>
+                                     {homeSettings.aboutImage && (
+                                         <div className="mb-4" style={{ position: 'relative', width: '200px', height: '200px', borderRadius: '8px', overflow: 'hidden' }}>
+                                             <img src={homeSettings.aboutImage} alt="About preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                         </div>
+                                     )}
+                                     <input
+                                         type="file"
+                                         ref={aboutImageInputRef}
+                                         onChange={handleAboutImageUpload}
+                                         className="hidden"
+                                         accept="image/*"
+                                         style={{ display: 'none' }}
+                                     />
+                                     <div className="flex gap-4">
+                                         <motion.button
+                                             type="button"
+                                             onClick={() => aboutImageInputRef.current.click()}
+                                             className="btn btn-outline"
+                                             disabled={uploadingAboutImage}
+                                         >
+                                             <ImageIcon size={18} /> {uploadingAboutImage ? 'იტვირთება...' : 'ფოტოს ატვირთვა'}
+                                         </motion.button>
+                                         {homeSettings.aboutImage && (
+                                             <motion.button
+                                                 type="button"
+                                                 onClick={() => setHomeSettings({ ...homeSettings, aboutImage: '' })}
+                                                 className="btn btn-danger"
+                                             >
+                                                 <Trash2 size={18} /> ფოტოს წაშლა
+                                             </motion.button>
+                                         )}
+                                     </div>
+                                 </div>
+                                 <div className="form-group mt-4">
+                                     <label className="form-label">ბიოგრაფია (სრული ტექსტი)</label>
+                                     <textarea
+                                         rows="8"
+                                         value={homeSettings.aboutBio}
+                                         onChange={e => setHomeSettings({ ...homeSettings, aboutBio: e.target.value })}
+                                         className="form-textarea"
+                                         placeholder="სრული ბიოგრაფიული ტექსტი..."
+                                     />
+                                 </div>
+                                 <div className="form-group">
+                                     <label className="form-label">ციტატა</label>
+                                     <input
+                                         type="text"
+                                         value={homeSettings.aboutQuote}
+                                         onChange={e => setHomeSettings({ ...homeSettings, aboutQuote: e.target.value })}
+                                         className="form-input"
+                                         placeholder="პოეზია ჟანასთვის არ არის მხოლოდ სიტყვები..."
+                                     />
+                                 </div>
+                             </div>
+
+                             {/* Contact Section */}
+                             <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
+                                 <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                     <ShareIcon size={18} /> 'კონტაქტი' გვერდი
+                                 </h4>
+                                 <div className="form-group">
+                                     <label className="form-label">ელ. ფოსტა</label>
+                                     <input
+                                         type="email"
+                                         value={homeSettings.contactEmail}
+                                         onChange={e => setHomeSettings({ ...homeSettings, contactEmail: e.target.value })}
+                                         className="form-input"
+                                         placeholder="მაგ: info@domain.com"
+                                     />
+                                 </div>
+                                 <div className="form-group">
+                                     <label className="form-label">ტელეფონი</label>
+                                     <input
+                                         type="text"
+                                         value={homeSettings.contactPhone}
+                                         onChange={e => setHomeSettings({ ...homeSettings, contactPhone: e.target.value })}
+                                         className="form-input"
+                                         placeholder="მაგ: +995 555 12 34 56"
+                                     />
+                                 </div>
+                                 <div className="form-group">
+                                     <label className="form-label">მისამართი</label>
+                                     <input
+                                         type="text"
+                                         value={homeSettings.contactAddress}
+                                         onChange={e => setHomeSettings({ ...homeSettings, contactAddress: e.target.value })}
+                                         className="form-input"
+                                         placeholder="მაგ: თბილისი, საქართველო"
+                                     />
+                                 </div>
+                                 <div className="form-group">
+                                     <label className="form-label">კონტაქტის ტექსტი</label>
+                                     <textarea
+                                         rows="4"
+                                         value={homeSettings.contactText}
+                                         onChange={e => setHomeSettings({ ...homeSettings, contactText: e.target.value })}
+                                         className="form-textarea"
+                                         placeholder="მოგვწერეთ ნებისმიერ საკითხზე..."
+                                     />
+                                 </div>
+                             </div>
+
+                             <div className="flex gap-4 mt-8">
+                                 <motion.button
+                                     type="submit"
+                                     className="btn btn-primary"
+                                     whileHover={{ scale: 1.02 }}
+                                     whileTap={{ scale: 0.98 }}
+                                 >
+                                     <Save size={18} /> ცვლილებების შენახვა
+                                 </motion.button>
+                             </div>
+                         </form>
+                      </motion.div>
+                 )}
 
                 {/* Input Form */}
                 <AnimatePresence>

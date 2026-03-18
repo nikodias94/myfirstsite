@@ -9,6 +9,8 @@ import Reviews from './pages/Reviews';
 import Prose from './pages/Prose';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
