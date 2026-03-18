@@ -559,52 +559,6 @@ const Admin = () => {
                                  </div>
                              </div>
 
-                             {/* Contact Section */}
-                             <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
-                                 <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                     <ShareIcon size={18} /> 'კონტაქტი' გვერდი
-                                 </h4>
-                                 <div className="form-group">
-                                     <label className="form-label">ელ. ფოსტა</label>
-                                     <input
-                                         type="email"
-                                         value={homeSettings.contactEmail}
-                                         onChange={e => setHomeSettings({ ...homeSettings, contactEmail: e.target.value })}
-                                         className="form-input"
-                                         placeholder="მაგ: info@domain.com"
-                                     />
-                                 </div>
-                                 <div className="form-group">
-                                     <label className="form-label">ტელეფონი</label>
-                                     <input
-                                         type="text"
-                                         value={homeSettings.contactPhone}
-                                         onChange={e => setHomeSettings({ ...homeSettings, contactPhone: e.target.value })}
-                                         className="form-input"
-                                         placeholder="მაგ: +995 555 12 34 56"
-                                     />
-                                 </div>
-                                 <div className="form-group">
-                                     <label className="form-label">მისამართი</label>
-                                     <input
-                                         type="text"
-                                         value={homeSettings.contactAddress}
-                                         onChange={e => setHomeSettings({ ...homeSettings, contactAddress: e.target.value })}
-                                         className="form-input"
-                                         placeholder="მაგ: თბილისი, საქართველო"
-                                     />
-                                 </div>
-                                 <div className="form-group">
-                                     <label className="form-label">კონტაქტის ტექსტი</label>
-                                     <textarea
-                                         rows="4"
-                                         value={homeSettings.contactText}
-                                         onChange={e => setHomeSettings({ ...homeSettings, contactText: e.target.value })}
-                                         className="form-textarea"
-                                         placeholder="მოგვწერეთ ნებისმიერ საკითხზე..."
-                                     />
-                                 </div>
-                             </div>
 
                              <div className="flex gap-4 mt-8">
                                  <motion.button
