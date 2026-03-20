@@ -5,6 +5,7 @@ import { Star, MessageSquareQuote, Eye } from 'lucide-react';
 import ContentModal from '../components/ContentModal';
 import useAutoOpenItem from '../hooks/useAutoOpenItem';
 import PageHero from '../components/PageHero';
+import useSEO from '../hooks/useSEO';
 
 const TRUNCATE_AT = 300;
 
@@ -12,6 +13,8 @@ const Reviews = () => {
     const { content } = useContent();
     const { reviews } = content;
     const [selectedItem, setSelectedItem] = useState(null);
+
+    useSEO({ title: 'რეცენზია', path: '/reviews' });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(reviews, openItem);

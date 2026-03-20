@@ -4,10 +4,12 @@ import { motion } from 'framer-motion';
 import { User, Feather } from 'lucide-react';
 import useTypingEffect from '../hooks/useTypingEffect';
 import PoemOfDay from '../components/PoemOfDay';
+import useSEO from '../hooks/useSEO';
 
 const Home = () => {
     const { content } = useContent();
     const { about } = content;
+    useSEO({ title: 'მთავარი', path: '/' });
     const typingWordsList = about.typingWords
         ? about.typingWords.split(',').map(w => w.trim()).filter(Boolean)
         : ['პოეტი', 'პროზაიკოსი', 'მთარგმნელი', 'შემოქმედი'];

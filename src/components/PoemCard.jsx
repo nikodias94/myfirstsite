@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Calendar, ChevronRight } from 'lucide-react';
+import { Eye, Calendar, ChevronRight, Share2, Twitter, Facebook, MessageCircle, Copy, Check } from 'lucide-react';
 
 const PoemCard = ({ item, index = 0, onOpenModal }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [showFullContent, setShowFullContent] = useState(false);
+    const [showShareMenu, setShowShareMenu] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     // Truncate text function for excerpt
     const truncateText = (text, maxLength = 150) => {
@@ -33,6 +35,45 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
         } catch {
             return dateString;
         }
+    };
+
+    // Calculate reading time
+    const calculateReadingTime = (text) => {
+        if (!text) return 0;
+        const wordsPerMinute = 200;
+        const noOfWords = text.split(/\s+/).length;
+        const minutes = Math.ceil(noOfWords / wordsPerMinute);
+        return minutes;
+    };
+
+    const readingTime = calculateReadingTime(item.content);
+
+    // Share functionality
+    const shareUrl = `${window.location.origin}${window.location.pathname}?id=${item.id}`;
+    const shareTitle = `${item.title} — ჟანა ანანიძე`;
+
+    const handleShare = (platform) => {
+        let url = '';
+        switch (platform) {
+            case 'twitter':
+                url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`;
+                break;
+            case 'facebook':
+                url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+                break;
+            case 'whatsapp':
+                url = `https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`;
+                break;
+            case 'copy':
+                navigator.clipboard.writeText(shareUrl);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+                return;
+            default:
+                return;
+        }
+        window.open(url, '_blank', 'noopener,noreferrer');
+        setShowShareMenu(false);
     };
 
     const displayContent = showFullContent
@@ -100,7 +141,64 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
                             <span>{formatDate(item.date)}</span>
                         </time>
                     )}
+                    {readingTime > 0 && (
+                        <span className="poem-reading-time">
+                            • {readingTime} წთ. კითხვა
+                        </span>
+                    )}
                 </div>
+
+                <div className="poem-card-actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    {/* Share Button */}
+                    <div style={{ position: 'relative' }}>
+                        <motion.button
+                            onClick={() => setShowShareMenu(!showShareMenu)}
+                            className="btn btn-icon btn-sm"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            title="გაზიარება"
+                        >
+                            <Share2 size={16} />
+                        </motion.button>
+
+                        {showShareMenu && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                className="share-dropdown"
+                                style={{
+                                    position: 'absolute',
+                                    bottom: '100%',
+                                    right: 0,
+                                    marginBottom: '0.5rem',
+                                    background: 'var(--bg-secondary)',
+                                    border: '1px solid var(--border-gold)',
+                                    borderRadius: '8px',
+                                    padding: '0.5rem',
+                                    zIndex: 100,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.25rem',
+                                    minWidth: '160px',
+                                    boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+                                }}
+                            >
+                                <button onClick={() => handleShare('facebook')} className="share-item">
+                                    <Facebook size={14} /> Facebook
+                                </button>
+                                <button onClick={() => handleShare('twitter')} className="share-item">
+                                    <Twitter size={14} /> Twitter
+                                </button>
+                                <button onClick={() => handleShare('whatsapp')} className="share-item">
+                                    <MessageCircle size={14} /> WhatsApp
+                                </button>
+                                <button onClick={() => handleShare('copy')} className="share-item">
+                                    {copied ? <Check size={14} style={{ color: '#4ade80' }} /> : <Copy size={14} />} 
+                                    {copied ? 'კოპირებულია!' : 'ბმულის კოპირება'}
+                                </button>
+                            </motion.div>
+                        )}
+                    </div>
 
                 {/* View Full Button */}
                 {hasMoreContent && (
@@ -131,6 +229,7 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
                         )}
                     </motion.button>
                 )}
+                </div>
             </footer>
 
             {/* Hover Glow Effect */}

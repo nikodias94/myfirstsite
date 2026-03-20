@@ -5,6 +5,7 @@ import { BookText, FileText, Eye } from 'lucide-react';
 import ContentModal from '../components/ContentModal';
 import useAutoOpenItem from '../hooks/useAutoOpenItem';
 import PageHero from '../components/PageHero';
+import useSEO from '../hooks/useSEO';
 
 const TRUNCATE_AT = 300;
 
@@ -12,6 +13,8 @@ const Prose = () => {
     const { content } = useContent();
     const { prose } = content;
     const [selectedItem, setSelectedItem] = useState(null);
+
+    useSEO({ title: 'პროზა', path: '/prose' });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(prose, openItem);

@@ -5,11 +5,14 @@ import ContentModal from '../components/ContentModal';
 import useAutoOpenItem from '../hooks/useAutoOpenItem';
 import PoemCard from '../components/PoemCard';
 import PageHero from '../components/PageHero';
+import useSEO from '../hooks/useSEO';
 
 const PoemsEn = () => {
     const { content } = useContent();
     const { poemsEn } = content;
     const [selectedItem, setSelectedItem] = useState(null);
+
+    useSEO({ title: 'Poems in English', path: '/poems-en' });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(poemsEn, openItem);

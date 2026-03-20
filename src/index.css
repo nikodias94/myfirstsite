@@ -490,6 +490,52 @@ blockquote {
   max-width: 1440px;
 }
 
+/* Share Dropdown and Meta */
+.poem-reading-time {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.share-dropdown {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6) !important;
+  animation: slideUpFade 0.3s ease-out;
+}
+
+.share-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.share-item:hover {
+  background: rgba(201, 169, 110, 0.1);
+  color: var(--accent-gold);
+}
+
+.share-item svg {
+  opacity: 0.7;
+}
+
+.share-item:hover svg {
+  opacity: 1;
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* Section */
 .section {
   padding: var(--space-20) 0;

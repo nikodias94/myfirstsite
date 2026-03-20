@@ -5,6 +5,7 @@ import { Languages, BookOpen, Eye } from 'lucide-react';
 import ContentModal from '../components/ContentModal';
 import useAutoOpenItem from '../hooks/useAutoOpenItem';
 import PageHero from '../components/PageHero';
+import useSEO from '../hooks/useSEO';
 
 const TRUNCATE_AT = 300;
 
@@ -12,6 +13,8 @@ const Translations = () => {
     const { content } = useContent();
     const { translations } = content;
     const [selectedItem, setSelectedItem] = useState(null);
+
+    useSEO({ title: 'თარგმანი', path: '/translations' });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(translations, openItem);
