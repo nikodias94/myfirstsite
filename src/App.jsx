@@ -45,10 +45,15 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="poetry" element={<Poetry />} />
-              <Route path="poems-en" element={<PoemsEn />} />
-              <Route path="translations" element={<Translations />} />
-              <Route path="reviews" element={<Reviews />} />
-              <Route path="prose" element={<Prose />} />
+            <Route path="poetry/:slug" element={<Poetry />} />
+            <Route path="poems-en" element={<PoemsEn />} />
+            <Route path="poems-en/:slug" element={<PoemsEn />} />
+            <Route path="translations" element={<Translations />} />
+            <Route path="translations/:slug" element={<Translations />} />
+            <Route path="reviews" element={<Reviews />} />
+            <Route path="reviews/:slug" element={<Reviews />} />
+            <Route path="prose" element={<Prose />} />
+            <Route path="prose/:slug" element={<Prose />} />
               <Route path="login" element={<Login />} />
               <Route
                 path="admin"

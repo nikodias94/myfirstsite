@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Calendar, ChevronRight, Share2, Twitter, Facebook, MessageCircle, Copy, Check } from 'lucide-react';
+import { Eye, Calendar, ChevronRight, Share2, Twitter, Facebook, MessageCircle, Copy, Check, Heart } from 'lucide-react';
+import { useContent } from '../context/ContentContext';
 
 const PoemCard = ({ item, index = 0, onOpenModal }) => {
+    const { likes, toggleLike } = useContent();
     const [isHovered, setIsHovered] = useState(false);
     const [showFullContent, setShowFullContent] = useState(false);
     const [showShareMenu, setShowShareMenu] = useState(false);
     const [copied, setCopied] = useState(false);
+
+    const itemCount = likes[item.id] || 0;
+    const likedItems = JSON.parse(localStorage.getItem('zhana_liked_items') || '[]');
+    const isLiked = likedItems.includes(item.id);
 
     // Truncate text function for excerpt
     const truncateText = (text, maxLength = 150) => {
@@ -49,7 +55,15 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
     const readingTime = calculateReadingTime(item.content);
 
     // Share functionality
-    const shareUrl = `${window.location.origin}${window.location.pathname}?id=${item.id}`;
+    const getShareUrl = () => {
+        const origin = window.location.origin;
+        const path = window.location.pathname.split('/')[1]; // get 'poetry' or 'prose' etc.
+        if (item.slug) {
+            return `${origin}/${path}/${item.slug}`;
+        }
+        return `${origin}/${path}?id=${item.id}`;
+    };
+    const shareUrl = getShareUrl();
     const shareTitle = `${item.title} — ჟანა ანანიძე`;
 
     const handleShare = (platform) => {
@@ -199,6 +213,19 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
                             </motion.div>
                         )}
                     </div>
+
+                    {/* Like Button */}
+                    <motion.button
+                        onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
+                        className="btn btn-icon btn-sm"
+                        style={{ color: isLiked ? '#ef4444' : 'inherit' }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        title="მოწონება"
+                    >
+                        <Heart size={16} fill={isLiked ? '#ef4444' : 'none'} />
+                        {itemCount > 0 && <span style={{ fontSize: '0.85rem', marginLeft: '0.3rem' }}>{itemCount}</span>}
+                    </motion.button>
 
                 {/* View Full Button */}
                 {hasMoreContent && (

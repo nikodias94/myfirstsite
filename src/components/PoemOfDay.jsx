@@ -12,6 +12,7 @@ const TABLES = [
 
 /* Pick a random item from all categories */
 const fetchRandomPoem = async () => {
+    if (!supabase) return null;
     const tableConfig = TABLES[Math.floor(Math.random() * TABLES.length)];
     const { data, error } = await supabase
         .from(tableConfig.table)
@@ -170,6 +171,7 @@ const PoemOfDay = () => {
             <ContentModal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
+                id={poem.id}
                 title={poem.title}
                 content={poem.content}
                 date={poem.date}

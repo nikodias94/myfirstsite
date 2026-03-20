@@ -49,6 +49,7 @@ const Poetry = () => {
                 <ContentModal
                     isOpen={!!selectedItem}
                     onClose={() => setSelectedItem(null)}
+                    id={selectedItem?.id}
                     title={selectedItem?.title}
                     content={selectedItem?.content}
                     date={selectedItem?.date}

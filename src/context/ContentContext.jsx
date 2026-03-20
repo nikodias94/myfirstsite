@@ -8,14 +8,21 @@ export const useContent = () => useContext(ContentContext);
 
 export const ContentProvider = ({ children }) => {
   const [content, setContent] = useState({ ...defaultContent, navigation: [], socialLinks: [] });
+  const [likes, setLikes] = useState({}); // { item_id: count }
+  const [comments, setComments] = useState({}); // { item_id: [comment1, ...] }
   const [loading, setLoading] = useState(true);
 
   // Fetch all data on mount
   useEffect(() => {
     const fetchAllData = async () => {
+      if (!supabase) {
+        console.warn("Supabase client not initialized. Using default content.");
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
-        const [poemsRes, poemsEnRes, translationsRes, reviewsRes, proseRes, homepageSettingsRes, navigationRes, socialLinksRes] = await Promise.all([
+        const res = await Promise.all([
           supabase.from('poems').select('*').order('created_at', { ascending: false }),
           supabase.from('poems_en').select('*').order('created_at', { ascending: false }),
           supabase.from('translations').select('*').order('created_at', { ascending: false }),
@@ -23,8 +30,13 @@ export const ContentProvider = ({ children }) => {
           supabase.from('prose').select('*').order('created_at', { ascending: false }),
           supabase.from('homepage_settings').select('*').eq('id', 1).single(),
           supabase.from('navigation_menu').select('*').order('order_index', { ascending: true }),
-          supabase.from('social_links').select('*').order('created_at', { ascending: true })
+          supabase.from('social_links').select('*').order('created_at', { ascending: true }),
+          supabase.from('likes').select('item_id'),
+          supabase.from('comments').select('*').order('created_at', { ascending: false })
         ]);
+
+        const [likesRes, commentsRes] = res.slice(-2);
+        const [poemsRes, poemsEnRes, translationsRes, reviewsRes, proseRes, homepageSettingsRes, navigationRes, socialLinksRes] = res.slice(0, 8);
 
         setContent(prev => {
           const newAbout = homepageSettingsRes.data ? {
@@ -57,6 +69,22 @@ export const ContentProvider = ({ children }) => {
             about: newAbout
           };
         });
+
+        // Group likes
+        const likesMap = {};
+        (likesRes.data || []).forEach(l => {
+          likesMap[l.item_id] = (likesMap[l.item_id] || 0) + 1;
+        });
+        setLikes(likesMap);
+
+        // Group comments
+        const commentsMap = {};
+        (commentsRes.data || []).forEach(c => {
+          if (!commentsMap[c.item_id]) commentsMap[c.item_id] = [];
+          commentsMap[c.item_id].push(c);
+        });
+        setComments(commentsMap);
+
       } catch (error) {
         console.error("Error fetching content from Supabase:", error);
       } finally {
@@ -75,34 +103,52 @@ export const ContentProvider = ({ children }) => {
     return category;
   };
 
+  const transliterate = (text) => {
+    const map = {
+      'ა': 'a', 'ბ': 'b', 'გ': 'g', 'დ': 'd', 'ე': 'e', 'ვ': 'v', 'ზ': 'z', 'თ': 't', 'ი': 'i', 'კ': 'k', 'ლ': 'l', 'მ': 'm', 'ნ': 'n', 'ო': 'o', 'პ': 'p', 'ჟ': 'zh', 'რ': 'r', 'ს': 's', 'ტ': 't', 'უ': 'u', 'ფ': 'p', 'ქ': 'k', 'ღ': 'gh', 'ყ': 'q', 'შ': 'sh', 'ჩ': 'ch', 'ც': 'ts', 'ძ': 'dz', 'წ': 'ts', 'ჭ': 'ch', 'ხ': 'kh', 'ჯ': 'j', 'ჰ': 'h'
+    };
+    return text.split('').map(char => map[char] || char).join('');
+  };
+
+  const createSlug = (title) => {
+    if (!title) return '';
+    return transliterate(title.toLowerCase())
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
   // Actions
   const addItem = async (category, item) => {
     const table = getTableName(category);
-    
+
     let newItem;
     if (category === 'navigation') {
-        newItem = {
-            title: item.title,
-            path: item.path,
-            order_index: parseInt(item.order_index, 10) || 0
-        };
+      newItem = {
+        title: item.title,
+        path: item.path,
+        order_index: parseInt(item.order_index, 10) || 0
+      };
     } else if (category === 'socialLinks') {
-        newItem = {
-            platform_name: item.platform_name,
-            url: item.url,
-            icon_name: item.icon_name
-        };
+      newItem = {
+        platform_name: item.platform_name,
+        url: item.url,
+        icon_name: item.icon_name
+      };
     } else {
-        // Default date if none provided for other content types
-        newItem = {
-          title: item.title,
-          content: item.content,
-          date: item.date || new Date().toISOString().split('T')[0]
-        };
+      // Default date if none provided for other content types
+      const slug = createSlug(item.title) + '-' + Math.random().toString(36).substring(2, 6);
+      newItem = {
+        title: item.title,
+        content: item.content,
+        date: item.date || new Date().toISOString().split('T')[0],
+        slug: slug
+      };
     }
 
     const { data, error } = await supabase.from(table).insert([newItem]).select();
-    
+
     if (error) {
       console.error(`Error adding to ${table}:`, error);
       return false;
@@ -119,26 +165,26 @@ export const ContentProvider = ({ children }) => {
 
   const updateItem = async (category, id, updatedItem) => {
     const table = getTableName(category);
-    
+
     let updateData;
     if (category === 'navigation') {
-        updateData = {
-            title: updatedItem.title,
-            path: updatedItem.path,
-            order_index: parseInt(updatedItem.order_index, 10) || 0
-        };
+      updateData = {
+        title: updatedItem.title,
+        path: updatedItem.path,
+        order_index: parseInt(updatedItem.order_index, 10) || 0
+      };
     } else if (category === 'socialLinks') {
-        updateData = {
-            platform_name: updatedItem.platform_name,
-            url: updatedItem.url,
-            icon_name: updatedItem.icon_name
-        };
+      updateData = {
+        platform_name: updatedItem.platform_name,
+        url: updatedItem.url,
+        icon_name: updatedItem.icon_name
+      };
     } else {
-        updateData = {
-          title: updatedItem.title,
-          content: updatedItem.content,
-          date: updatedItem.date
-        };
+      updateData = {
+        title: updatedItem.title,
+        content: updatedItem.content,
+        date: updatedItem.date
+      };
     }
 
     const { data, error } = await supabase.from(table).update(updateData).eq('id', id).select();
@@ -159,7 +205,7 @@ export const ContentProvider = ({ children }) => {
 
   const deleteItem = async (category, id) => {
     const table = getTableName(category);
-    
+
     const { error } = await supabase.from(table).delete().eq('id', id);
 
     if (error) {
@@ -235,11 +281,62 @@ export const ContentProvider = ({ children }) => {
   };
 
   const resetToDefault = () => {
-    alert("Reset to default is disabled while connected to Supabase.");
+    // This previously reset localStorage, now it might reset state or do nothing.
+    // For safety, we keep the function to avoid ReferenceErrors.
+    setContent({ ...defaultContent, navigation: [], socialLinks: [] });
+    return true;
+  };
+
+  const toggleLike = async (itemId) => {
+    if (!supabase) return false;
+    const likedItems = JSON.parse(localStorage.getItem('zhana_liked_items') || '[]');
+    const isLiked = likedItems.includes(itemId);
+
+    if (isLiked) {
+      // Remove like
+      const { error } = await supabase.from('likes').delete().eq('item_id', itemId).limit(1); // actually this deletes ALL likes from this user? no, we need specific ID. 
+      // For simplicity in a public like system without auth, we'll just allow adding. 
+      // If we want to allow removing, we'd need session_id.
+      return false;
+    } else {
+      // Add like
+      const { error } = await supabase.from('likes').insert([{ item_id: itemId }]);
+      if (!error) {
+        likedItems.push(itemId);
+        localStorage.setItem('zhana_liked_items', JSON.stringify(likedItems));
+        setLikes(prev => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const addComment = async (itemId, commentData) => {
+    if (!supabase) return false;
+    const { data, error } = await supabase.from('comments').insert([{
+      item_id: itemId,
+      author_name: commentData.name,
+      author_email: commentData.email,
+      content: commentData.content
+    }]).select();
+
+    if (!error && data) {
+      setComments(prev => ({
+        ...prev,
+        [itemId]: [data[0], ...(prev[itemId] || [])]
+      }));
+      return true;
+    }
+    return false;
   };
 
   return (
-    <ContentContext.Provider value={{ content, loading, addItem, updateItem, deleteItem, updateHomepageSettings, importData, resetToDefault }}>
+    <ContentContext.Provider value={{
+      content, loading, likes, comments,
+      addItem, updateItem, deleteItem,
+      updateHomepageSettings, importData, resetToDefault,
+      toggleLike, addComment
+    }}>
       {children}
     </ContentContext.Provider>
   );

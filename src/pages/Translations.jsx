@@ -7,7 +7,7 @@ import useAutoOpenItem from '../hooks/useAutoOpenItem';
 import PageHero from '../components/PageHero';
 import useSEO from '../hooks/useSEO';
 
-const TRUNCATE_AT = 300;
+import PoemCard from '../components/PoemCard';
 
 const Translations = () => {
     const { content } = useContent();
@@ -30,40 +30,16 @@ const Translations = () => {
 
             <div className="container section-sm" style={{ paddingTop: 0 }}>
                 {translations.length > 0 ? (
-                    <motion.div
-                        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
-                        initial="hidden"
-                        animate="visible"
-                        className="grid"
-                        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 'var(--space-6)' }}
-                    >
-                        {translations.map((item) => {
-                            const hasMore = item.content && item.content.length > TRUNCATE_AT;
-                            const preview = hasMore ? item.content.substring(0, TRUNCATE_AT) + '...' : item.content;
-                            return (
-                                <motion.article
-                                    key={item.id}
-                                    id={`item-card-${item.id}`}
-                                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] } } }}
-                                    className="card"
-                                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                                >
-                                    <h3 className="card-title">{item.title}</h3>
-                                    <div className="card-content">
-                                        <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{preview}</p>
-                                    </div>
-                                    <div className="card-footer">
-                                        <span className="card-date">{item.date}</span>
-                                        {hasMore && (
-                                            <motion.button onClick={() => setSelectedItem(item)} className="btn btn-outline btn-sm" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                                <Eye size={15} /><span>სრულად ნახვა</span>
-                                            </motion.button>
-                                        )}
-                                    </div>
-                                </motion.article>
-                            );
-                        })}
-                    </motion.div>
+                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 'var(--space-8)' }}>
+                        {translations.map((item, index) => (
+                            <PoemCard
+                                key={item.id}
+                                item={item}
+                                index={index}
+                                onOpenModal={() => setSelectedItem(item)}
+                            />
+                        ))}
+                    </div>
                 ) : (
                     <div className="empty-state">
                         <div className="empty-state-icon"><BookOpen size={48} /></div>
@@ -72,7 +48,14 @@ const Translations = () => {
                     </div>
                 )}
 
-                <ContentModal isOpen={!!selectedItem} onClose={() => setSelectedItem(null)} title={selectedItem?.title} content={selectedItem?.content} date={selectedItem?.date} />
+                <ContentModal
+                isOpen={!!selectedItem}
+                onClose={() => setSelectedItem(null)}
+                id={selectedItem?.id}
+                title={selectedItem?.title}
+                content={selectedItem?.content}
+                date={selectedItem?.date}
+            />
             </div>
         </>
     );

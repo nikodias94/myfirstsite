@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 
 /**
  * Reads location.state.highlightId after navigation.
@@ -10,6 +10,7 @@ import { useLocation } from 'react-router-dom';
  */
 const useAutoOpenItem = (items, onOpen) => {
     const location = useLocation();
+    const { slug } = useParams();
     const handled = useRef(false);
 
     useEffect(() => {
@@ -18,11 +19,17 @@ const useAutoOpenItem = (items, onOpen) => {
     }, [location.key]);
 
     useEffect(() => {
-        if (handled.current) return;
-        const highlightId = location.state?.highlightId;
-        if (!highlightId || !items || items.length === 0) return;
+        if (!items || items.length === 0) return;
 
-        const match = items.find((it) => String(it.id) === String(highlightId));
+        const highlightId = location.state?.highlightId;
+        
+        let match;
+        if (slug) {
+            match = items.find((it) => it.slug === slug);
+        } else if (highlightId) {
+            match = items.find((it) => String(it.id) === String(highlightId));
+        }
+
         if (!match) return;
 
         handled.current = true;

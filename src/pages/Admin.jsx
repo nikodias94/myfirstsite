@@ -65,7 +65,9 @@ const Admin = () => {
     ];
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        if (supabase) {
+            await supabase.auth.signOut();
+        }
         navigate('/login');
     };
 
@@ -152,6 +154,11 @@ const Admin = () => {
         const file = event.target.files[0];
         if (!file) return;
 
+        if (!supabase) {
+            alert('სერვერთან კავშირი ვერ დამყარდა (Supabase NOT initialized)');
+            setUploadingImage(false);
+            return;
+        }
         setUploadingImage(true);
         const fileExt = file.name.split('.').pop();
         const fileName = `hero_${Math.random()}.${fileExt}`;
@@ -180,6 +187,11 @@ const Admin = () => {
         const file = event.target.files[0];
         if (!file) return;
 
+        if (!supabase) {
+            alert('სერვერთან კავშირი ვერ დამყარდა (Supabase NOT initialized)');
+            setUploadingAboutImage(false);
+            return;
+        }
         setUploadingAboutImage(true);
         const fileExt = file.name.split('.').pop();
         const fileName = `about_${Math.random()}.${fileExt}`;

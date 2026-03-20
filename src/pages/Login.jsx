@@ -18,6 +18,12 @@ const Login = () => {
         setIsLoading(true);
         setError('');
 
+        if (!supabase) {
+            setError('სერვერთან კავშირი ვერ დამყარდა (Supabase NOT initialized)');
+            setIsLoading(false);
+            return;
+        }
+
         const { error } = await supabase.auth.signInWithPassword({
             email: `${username}@admin.com`,
             password,
