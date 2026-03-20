@@ -218,12 +218,12 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
                     <motion.button
                         onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
                         className="btn btn-icon btn-sm"
-                        style={{ color: isLiked ? '#ef4444' : 'inherit' }}
-                        whileHover={{ scale: 1.1 }}
+                        style={{ color: isLiked ? '#ef4444' : 'rgba(201, 169, 110, 0.7)' }}
+                        whileHover={{ scale: 1.1, color: isLiked ? '#ef4444' : '#c9a96e' }}
                         whileTap={{ scale: 0.9 }}
                         title="მოწონება"
                     >
-                        <Heart size={16} fill={isLiked ? '#ef4444' : 'none'} />
+                        <Heart size={16} fill={isLiked ? '#ef4444' : 'none'} strokeWidth={isLiked ? 2 : 2.5} />
                         {itemCount > 0 && <span style={{ fontSize: '0.85rem', marginLeft: '0.3rem' }}>{itemCount}</span>}
                     </motion.button>
 

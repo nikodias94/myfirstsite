@@ -102,6 +102,22 @@ const ContentModal = ({ isOpen, onClose, id, title, content, date }) => {
                                             )}
                                         </AnimatePresence>
                                     </motion.button>
+                                    {/* Like button */}
+                                    <motion.button
+                                        onClick={() => toggleLike(id)}
+                                        className="action-btn like-btn"
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'transparent',
+                                            border: '1px solid rgba(201, 169, 110, 0.2)', padding: '0.5rem 1rem', borderRadius: '20px',
+                                            color: liked ? '#ef4444' : 'rgba(201, 169, 110, 0.7)',
+                                            cursor: 'pointer'
+                                        }}
+                                        whileHover={{ scale: 1.05, borderColor: '#c9a96e', color: liked ? '#ef4444' : '#c9a96e' }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        <Heart size={18} fill={liked ? '#ef4444' : 'none'} strokeWidth={liked ? 2 : 2.5} />
+                                        <span>{itemCount} მოწონება</span>
+                                    </motion.button>
                                     {/* Close button */}
                                     <motion.button
                                         onClick={onClose}
