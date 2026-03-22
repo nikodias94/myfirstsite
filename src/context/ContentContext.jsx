@@ -138,6 +138,13 @@ export const ContentProvider = ({ children }) => {
         url: item.url,
         icon_name: item.icon_name
       };
+    } else if (category === 'books') {
+      newItem = {
+        title: item.title,
+        description: item.description,
+        cover_url: item.cover_url,
+        order_index: parseInt(item.order_index, 10) || 0
+      };
     } else {
       // Default date if none provided for other content types
       const slug = createSlug(item.title) + '-' + Math.random().toString(36).substring(2, 6);
@@ -180,6 +187,13 @@ export const ContentProvider = ({ children }) => {
         platform_name: updatedItem.platform_name,
         url: updatedItem.url,
         icon_name: updatedItem.icon_name
+      };
+    } else if (category === 'books') {
+      updateData = {
+        title: updatedItem.title,
+        description: updatedItem.description,
+        cover_url: updatedItem.cover_url,
+        order_index: parseInt(updatedItem.order_index, 10) || 0
       };
     } else {
       updateData = {
