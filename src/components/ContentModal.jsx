@@ -5,12 +5,14 @@ import { useContent } from '../context/ContentContext';
 import DOMPurify from 'dompurify';
 
 const ContentModal = ({ isOpen, onClose, id, title, content, date, cover_url }) => {
-    const { comments: allComments, addComment } = useContent();
+    const { comments: allComments, addComment, likes: allLikes, toggleLike } = useContent();
     const [copied, setCopied] = useState(false);
     const [commentData, setCommentData] = useState({ name: '', content: '' });
     const [submitting, setSubmitting] = useState(false);
 
     const itemComments = allComments[id] || [];
+    const liked = allLikes[id] || false;
+    const itemCount = 0; // Temporary placeholder until itemCount is available in context or passed as prop
 
     // Close on Escape key
     useEffect(() => {
