@@ -341,6 +341,21 @@ export const ContentProvider = ({ children }) => {
         ...prev,
         [itemId]: [data[0], ...(prev[itemId] || [])]
       }));
+
+      // Manually trigger notification Edge Function
+      try {
+        fetch('https://tgvsvqhioltwbujnvkwa.supabase.co/functions/v1/notify-new-comment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({ record: data[0] })
+        }).catch(err => console.error("Email notification error:", err));
+      } catch (e) {
+        console.error("Failed to trigger notification:", e);
+      }
+
       return true;
     }
     return false;
