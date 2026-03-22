@@ -4,7 +4,7 @@ import { X, Copy, Check, MessageSquare, User, Send, Heart } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import DOMPurify from 'dompurify';
 
-const ContentModal = ({ isOpen, onClose, id, title, content, date }) => {
+const ContentModal = ({ isOpen, onClose, id, title, content, date, cover_url }) => {
     const { comments: allComments, addComment } = useContent();
     const [copied, setCopied] = useState(false);
     const [commentData, setCommentData] = useState({ name: '', content: '' });
@@ -138,6 +138,30 @@ const ContentModal = ({ isOpen, onClose, id, title, content, date }) => {
 
                             {/* Scrollable Content */}
                             <div className="modal-body">
+                                {cover_url && (
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'center', 
+                                        marginBottom: '2.5rem',
+                                        perspective: '1000px'
+                                    }}>
+                                        <motion.div
+                                            initial={{ rotateY: -15, scale: 0.9, opacity: 0 }}
+                                            animate={{ rotateY: 0, scale: 1, opacity: 1 }}
+                                            transition={{ duration: 0.6, delay: 0.2 }}
+                                            style={{
+                                                width: '220px',
+                                                height: '300px',
+                                                borderRadius: '8px',
+                                                overflow: 'hidden',
+                                                border: '2px solid var(--border-gold)',
+                                                boxShadow: '0 20px 50px rgba(0,0,0,0.6)'
+                                            }}
+                                        >
+                                            <img src={cover_url} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </motion.div>
+                                    </div>
+                                )}
                                 <div 
                                     className="tiptap-editor-content"
                                     style={{ lineHeight: 1.9, color: 'var(--text-secondary)' }}

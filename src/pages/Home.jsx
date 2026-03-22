@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useContent } from '../context/ContentContext';
 import { motion } from 'framer-motion';
 import { User, Feather, Book } from 'lucide-react';
 import useTypingEffect from '../hooks/useTypingEffect';
 import PoemOfDay from '../components/PoemOfDay';
 import useSEO from '../hooks/useSEO';
+import ContentModal from '../components/ContentModal';
 
 const Home = () => {
     const { content } = useContent();
     const { about } = content;
+    const [selectedBook, setSelectedBook] = useState(null);
     useSEO({ title: 'მთავარი', path: '/' });
     const typingWordsList = about.typingWords
         ? about.typingWords.split(',').map(w => w.trim()).filter(Boolean)
@@ -238,6 +240,12 @@ const Home = () => {
                                             {book.description}
                                         </p>
                                     )}
+                                    <button 
+                                        className="btn-see-more"
+                                        onClick={() => setSelectedBook(book)}
+                                    >
+                                        სრულად ნახვა
+                                    </button>
                                 </div>
                             </motion.div>
                         ))}
@@ -245,6 +253,16 @@ const Home = () => {
                 </div>
             </motion.section>
         )}
+
+        {/* Book Detail Modal */}
+        <ContentModal
+            isOpen={!!selectedBook}
+            onClose={() => setSelectedBook(null)}
+            id={selectedBook?.id}
+            title={selectedBook?.title}
+            content={selectedBook?.description}
+            cover_url={selectedBook?.cover_url}
+        />
         </>
     );
 };
