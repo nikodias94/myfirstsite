@@ -7,7 +7,7 @@ const ContentContext = createContext();
 export const useContent = () => useContext(ContentContext);
 
 export const ContentProvider = ({ children }) => {
-  const [content, setContent] = useState({ ...defaultContent, navigation: [], socialLinks: [] });
+  const [content, setContent] = useState({ ...defaultContent, navigation: [], socialLinks: [], books: [] });
   const [likes, setLikes] = useState({}); // { item_id: count }
   const [comments, setComments] = useState({}); // { item_id: [comment1, ...] }
   const [loading, setLoading] = useState(true);
@@ -31,12 +31,13 @@ export const ContentProvider = ({ children }) => {
           supabase.from('homepage_settings').select('*').eq('id', 1).single(),
           supabase.from('navigation_menu').select('*').order('order_index', { ascending: true }),
           supabase.from('social_links').select('*').order('created_at', { ascending: true }),
+          supabase.from('books').select('*').order('order_index', { ascending: true }),
           supabase.from('likes').select('item_id'),
           supabase.from('comments').select('*').order('created_at', { ascending: false })
         ]);
 
         const [likesRes, commentsRes] = res.slice(-2);
-        const [poemsRes, poemsEnRes, translationsRes, reviewsRes, proseRes, homepageSettingsRes, navigationRes, socialLinksRes] = res.slice(0, 8);
+        const [poemsRes, poemsEnRes, translationsRes, reviewsRes, proseRes, homepageSettingsRes, navigationRes, socialLinksRes, booksRes] = res.slice(0, 9);
 
         setContent(prev => {
           const newAbout = homepageSettingsRes.data ? {
@@ -66,6 +67,7 @@ export const ContentProvider = ({ children }) => {
             prose: proseRes.data || [],
             navigation: navigationRes.data || [],
             socialLinks: socialLinksRes.data || [],
+            books: booksRes?.data || [],
             about: newAbout
           };
         });
@@ -100,7 +102,7 @@ export const ContentProvider = ({ children }) => {
     if (category === 'poemsEn') return 'poems_en';
     if (category === 'navigation') return 'navigation_menu';
     if (category === 'socialLinks') return 'social_links';
-    return category;
+    return category; // poems, translations, reviews, prose, books
   };
 
   const transliterate = (text) => {

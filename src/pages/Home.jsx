@@ -1,7 +1,7 @@
 import React from 'react';
 import { useContent } from '../context/ContentContext';
 import { motion } from 'framer-motion';
-import { User, Feather } from 'lucide-react';
+import { User, Feather, Book } from 'lucide-react';
 import useTypingEffect from '../hooks/useTypingEffect';
 import PoemOfDay from '../components/PoemOfDay';
 import useSEO from '../hooks/useSEO';
@@ -111,6 +111,64 @@ const Home = () => {
 
         {/* Poem of the Day */}
         <PoemOfDay />
+
+        {/* My Books Section */}
+        {content.books && content.books.length > 0 && (
+            <motion.section
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.7 }}
+                className="books-section"
+            >
+                <div className="container">
+                    <div className="section-header text-center mb-12">
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            whileInView={{ scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+                            style={{ display: 'inline-flex', padding: '1rem', background: 'rgba(201, 169, 110, 0.1)', borderRadius: '50%', marginBottom: '1rem' }}
+                        >
+                            <Book size={28} style={{ color: 'var(--accent-gold)' }} />
+                        </motion.div>
+                        <h2 className="section-title">ჩემი წიგნები</h2>
+                        <div className="divider-gold mx-auto" />
+                    </div>
+
+                    <div className="books-grid">
+                        {content.books.map((book, index) => (
+                            <motion.div
+                                key={book.id}
+                                className="book-card"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                            >
+                                <div className="book-cover-wrapper">
+                                    {book.cover_url ? (
+                                        <img src={book.cover_url} alt={book.title} className="book-cover" loading="lazy" />
+                                    ) : (
+                                        <div className="book-cover placeholder">
+                                            <Book size={48} style={{ opacity: 0.3 }} />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="book-info">
+                                    <h3 className="book-title">{book.title}</h3>
+                                    {book.description && (
+                                        <p className="book-description">
+                                            {book.description}
+                                        </p>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </motion.section>
+        )}
 
         {/* Dynamic About Section */}
         {(about.aboutTitle || about.aboutDescription) && (

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, MessageSquare, User, Send } from 'lucide-react';
+import { X, Copy, Check, MessageSquare, User, Send, Heart } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
+import DOMPurify from 'dompurify';
 
 const ContentModal = ({ isOpen, onClose, id, title, content, date }) => {
     const { comments: allComments, addComment } = useContent();
@@ -137,9 +138,11 @@ const ContentModal = ({ isOpen, onClose, id, title, content, date }) => {
 
                             {/* Scrollable Content */}
                             <div className="modal-body">
-                                <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.9, color: 'var(--text-secondary)' }}>
-                                    {content}
-                                </p>
+                                <div 
+                                    className="tiptap-editor-content"
+                                    style={{ lineHeight: 1.9, color: 'var(--text-secondary)' }}
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+                                />
 
                                 {/* Comments Section */}
                                 <div className="modal-comments-section" style={{ marginTop: '4rem', borderTop: '1px solid var(--border-gold)', paddingTop: '2.5rem' }}>

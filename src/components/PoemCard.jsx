@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, Calendar, ChevronRight, Share2, Twitter, Facebook, MessageCircle, Copy, Check, Heart } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
+import DOMPurify from 'dompurify';
 
 const PoemCard = ({ item, index = 0, onOpenModal }) => {
     const { likes, toggleLike } = useContent();
@@ -14,9 +15,15 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
     const likedItems = JSON.parse(localStorage.getItem('zhana_liked_items') || '[]');
     const isLiked = likedItems.includes(item.id);
 
-    // Truncate text function for excerpt
-    const truncateText = (text, maxLength = 150) => {
-        if (!text) return '';
+    // Truncate text function for HTML excerpts
+    const truncateText = (htmlString, maxLength = 150) => {
+        if (!htmlString) return '';
+        
+        // Create a temporary element to strip HTML tags
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = DOMPurify.sanitize(htmlString);
+        const text = tempDiv.textContent || tempDiv.innerText || '';
+
         if (text.length <= maxLength) return text;
 
         // Find the last space before maxLength to avoid cutting words
@@ -133,9 +140,16 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
 
             {/* Card Content */}
             <div className="card-content poem-content">
-                <p className={showFullContent ? 'poem-text-full' : 'poem-text-truncated'}>
-                    {displayContent}
-                </p>
+                {showFullContent ? (
+                    <div 
+                        className="tiptap-editor-content poem-text-full"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.content) }}
+                    />
+                ) : (
+                    <p className="poem-text-truncated tiptap-editor-content">
+                        {displayContent}
+                    </p>
+                )}
 
                 {/* Fade effect for truncated text */}
                 {!showFullContent && hasMoreContent && (

@@ -7,6 +7,7 @@ import {
     FileText, Feather, Globe, Star, BookText, LayoutDashboard,
     ChevronRight, CheckCircle, Home as HomeIcon, Image as ImageIcon, Link as LinkIcon, Share2 as ShareIcon, User
 } from 'lucide-react';
+import RichTextEditor from '../components/RichTextEditor';
 import { supabase } from '../lib/supabase';
 
 const Admin = () => {
@@ -61,7 +62,8 @@ const Admin = () => {
         { id: 'poemsEn', label: 'Poems (En)', icon: Globe, color: '#60a5fa' },
         { id: 'translations', label: 'თარგმანი', icon: FileText, color: '#a78bfa' },
         { id: 'reviews', label: 'რეცენზია', icon: Star, color: '#fbbf24' },
-        { id: 'prose', label: 'პოეზია', icon: BookText, color: '#4ade80' },
+        { id: 'prose', label: 'პროზა', icon: BookText, color: '#4ade80' },
+        { id: 'books', label: 'წიგნები', icon: BookText, color: '#8b5cf6' },
     ];
 
     const handleLogout = async () => {
@@ -120,7 +122,9 @@ const Admin = () => {
                 order_index: 0,
                 platform_name: '',
                 url: '',
-                icon_name: ''
+                icon_name: '',
+                description: '',
+                cover_url: ''
             });
         }
         setIsFormOpen(true);
@@ -641,6 +645,89 @@ const Admin = () => {
                                             </p>
                                         </div>
                                     </>
+                                ) : activeTab === 'books' ? (
+                                    <>
+                                        <div className="form-group">
+                                            <label className="form-label">სათაური</label>
+                                            <input
+                                                type="text"
+                                                placeholder="წიგნის სათაური"
+                                                value={formData.title}
+                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                className="form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">ყდის სურათის URL (ან ატვირთეთ ქვევით)</label>
+                                            <input
+                                                type="text"
+                                                placeholder="სურათის ბმული"
+                                                value={formData.cover_url}
+                                                onChange={e => setFormData({ ...formData, cover_url: e.target.value })}
+                                                className="form-input"
+                                            />
+                                            <div style={{ marginTop: '0.5rem' }}>
+                                                <input
+                                                    type="file"
+                                                    id="bookCoverUpload"
+                                                    accept="image/*"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files[0];
+                                                        if (!file || !supabase) return;
+                                                        
+                                                        const fileExt = file.name.split('.').pop();
+                                                        const fileName = `book_${Math.random()}.${fileExt}`;
+                                                        
+                                                        try {
+                                                            const { error } = await supabase.storage.from('homepage_assets').upload(fileName, file);
+                                                            if (error) throw error;
+                                                            
+                                                            const { data } = supabase.storage.from('homepage_assets').getPublicUrl(fileName);
+                                                            setFormData({ ...formData, cover_url: data.publicUrl });
+                                                        } catch (err) {
+                                                            alert('ფოტოს ატვირთვა ვერ მოხერხდა: ' + err.message);
+                                                        }
+                                                    }}
+                                                    style={{ display: 'none' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-outline"
+                                                    onClick={() => document.getElementById('bookCoverUpload').click()}
+                                                >
+                                                    <ImageIcon size={16} style={{ marginRight: '0.5rem' }}/> ყდის ატვირთვა
+                                                </button>
+                                            </div>
+                                            {formData.cover_url && (
+                                                <img 
+                                                    src={formData.cover_url} 
+                                                    alt="Preview" 
+                                                    style={{ width: '100px', height: '140px', objectFit: 'cover', marginTop: '1rem', borderRadius: '4px' }} 
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">მოკლე აღწერა</label>
+                                            <textarea
+                                                rows="4"
+                                                placeholder="წიგნის მოკლე აღწერა..."
+                                                value={formData.description}
+                                                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                                className="form-textarea"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">მიმდევრობა (Order Index)</label>
+                                            <input
+                                                type="number"
+                                                value={formData.order_index}
+                                                onChange={e => setFormData({ ...formData, order_index: e.target.value })}
+                                                className="form-input"
+                                                required
+                                            />
+                                        </div>
+                                    </>
                                 ) : (
                                     <>
                                         <div className="form-group">
@@ -656,13 +743,9 @@ const Admin = () => {
                                         </div>
                                         <div className="form-group">
                                             <label className="form-label">ტექსტი</label>
-                                            <textarea
-                                                rows="10"
-                                                placeholder="შეიყვანეთ ტექსტი"
-                                                value={formData.content}
-                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                                className="form-textarea"
-                                                required
+                                            <RichTextEditor
+                                                content={formData.content}
+                                                onChange={(html) => setFormData({ ...formData, content: html })}
                                             />
                                         </div>
                                         <div className="form-group">
