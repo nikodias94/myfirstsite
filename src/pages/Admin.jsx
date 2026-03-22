@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LogOut, Trash2, Edit, Plus, Download, Upload, Save, X,
-    FileText, Feather, Globe, Star, BookText, LayoutDashboard,
+    FileText, Feather, Globe, Star, BookText, Book, LayoutDashboard,
     ChevronRight, CheckCircle, Home as HomeIcon, Image as ImageIcon, Link as LinkIcon, Share2 as ShareIcon, User
 } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
@@ -24,7 +24,18 @@ const Admin = () => {
     const [uploadingAboutImage, setUploadingAboutImage] = useState(false);
 
     // Form State
-    const [formData, setFormData] = useState({ title: '', content: '', date: '', path: '', order_index: 0, platform_name: '', url: '', icon_name: '' });
+    const [formData, setFormData] = useState({ 
+        title: '', 
+        content: '', 
+        date: new Date().toISOString().split('T')[0], 
+        path: '', 
+        order_index: 0, 
+        platform_name: '', 
+        url: '', 
+        icon_name: '',
+        description: '',
+        cover_url: ''
+    });
     
     // Homepage Settings State
     const [homeSettings, setHomeSettings] = useState({
@@ -63,7 +74,7 @@ const Admin = () => {
         { id: 'translations', label: 'თარგმანი', icon: FileText, color: '#a78bfa' },
         { id: 'reviews', label: 'რეცენზია', icon: Star, color: '#fbbf24' },
         { id: 'prose', label: 'პროზა', icon: BookText, color: '#4ade80' },
-        { id: 'books', label: 'წიგნები', icon: BookText, color: '#8b5cf6' },
+        { id: 'books', label: 'წიგნები', icon: Book, color: '#8b5cf6' },
     ];
 
     const handleLogout = async () => {
@@ -110,7 +121,9 @@ const Admin = () => {
                 order_index: item.order_index || 0,
                 platform_name: item.platform_name || '',
                 url: item.url || '',
-                icon_name: item.icon_name || ''
+                icon_name: item.icon_name || '',
+                description: item.description || '',
+                cover_url: item.cover_url || ''
             });
         } else {
             setEditingItem(null);
@@ -130,17 +143,23 @@ const Admin = () => {
         setIsFormOpen(true);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        let success = false;
         if (editingItem) {
-            updateItem(activeTab, editingItem.id, formData);
+            success = await updateItem(activeTab, editingItem.id, formData);
         } else {
-            addItem(activeTab, formData);
+            success = await addItem(activeTab, formData);
         }
-        setIsFormOpen(false);
-        setEditingItem(null);
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
+        
+        if (success) {
+            setIsFormOpen(false);
+            setEditingItem(null);
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } else {
+            alert('მოქმედება ვერ შესრულდა. გთხოვთ სცადოთ მოგვიანებით.');
+        }
     };
 
     const handleHomeSettingsSubmit = async (e) => {
