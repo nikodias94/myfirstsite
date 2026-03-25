@@ -568,15 +568,17 @@ const Admin = () => {
                 )}
 
                 {/* Input Form */}
-                <AnimatePresence>
-                    {isFormOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -12 }}
-                            transition={{ duration: 0.25 }}
-                            className="card mb-8"
-                            style={{ border: '1px solid var(--accent-gold)' }}
+                {isFormOpen && (
+                    <div
+                        style={{
+                            background: 'var(--bg-secondary)',
+                            border: '1px solid var(--accent-gold)',
+                            borderRadius: '12px',
+                            padding: '2rem',
+                            marginBottom: '2rem',
+                            position: 'relative',
+                            zIndex: 1
+                        }}
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h4 style={{ color: 'var(--accent-gold)', margin: 0 }}>
@@ -799,9 +801,8 @@ const Admin = () => {
                                     </motion.button>
                                 </div>
                             </form>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                        </div>
+                )}
 
                 {/* List for Content Items */}
                 {activeTab !== 'homepage' && (
