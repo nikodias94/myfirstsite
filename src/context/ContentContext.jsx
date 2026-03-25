@@ -10,6 +10,7 @@ export const ContentProvider = ({ children }) => {
   const [content, setContent] = useState({ ...defaultContent, navigation: [], socialLinks: [], books: [] });
   const [likes, setLikes] = useState({}); // { item_id: count }
   const [comments, setComments] = useState({}); // { item_id: [comment1, ...] }
+  const [allCommentsList, setAllCommentsList] = useState([]); // flat list for admin
   const [loading, setLoading] = useState(true);
 
   // Fetch all data on mount
@@ -81,11 +82,13 @@ export const ContentProvider = ({ children }) => {
 
         // Group comments
         const commentsMap = {};
-        (commentsRes.data || []).forEach(c => {
+        const commentList = commentsRes.data || [];
+        commentList.forEach(c => {
           if (!commentsMap[c.item_id]) commentsMap[c.item_id] = [];
           commentsMap[c.item_id].push(c);
         });
         setComments(commentsMap);
+        setAllCommentsList(commentList);
 
       } catch (error) {
         console.error("Error fetching content from Supabase:", error);
@@ -337,10 +340,12 @@ export const ContentProvider = ({ children }) => {
     }]).select();
 
     if (!error && data) {
+      const newComment = data[0];
       setComments(prev => ({
         ...prev,
-        [itemId]: [data[0], ...(prev[itemId] || [])]
+        [itemId]: [newComment, ...(prev[itemId] || [])]
       }));
+      setAllCommentsList(prev => [newComment, ...prev]);
 
       // Manually trigger notification Edge Function
       try {
@@ -361,12 +366,26 @@ export const ContentProvider = ({ children }) => {
     return false;
   };
 
+  const deleteComment = async (commentId, itemId) => {
+    if (!supabase) return false;
+    const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    if (!error) {
+      setAllCommentsList(prev => prev.filter(c => c.id !== commentId));
+      setComments(prev => ({
+        ...prev,
+        [itemId]: (prev[itemId] || []).filter(c => c.id !== commentId)
+      }));
+      return true;
+    }
+    return false;
+  };
+
   return (
     <ContentContext.Provider value={{
-      content, loading, likes, comments,
+      content, loading, likes, comments, allCommentsList,
       addItem, updateItem, deleteItem,
       updateHomepageSettings, importData, resetToDefault,
-      toggleLike, addComment
+      toggleLike, addComment, deleteComment
     }}>
       {children}
     </ContentContext.Provider>

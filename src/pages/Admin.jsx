@@ -5,13 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     LogOut, Trash2, Edit, Plus, Download, Upload, Save, X,
     FileText, Feather, Globe, Star, BookText, Book, LayoutDashboard,
-    ChevronRight, CheckCircle, Home as HomeIcon, Image as ImageIcon, Link as LinkIcon, Share2 as ShareIcon, User
+    ChevronRight, CheckCircle, Home as HomeIcon, Image as ImageIcon, Link as LinkIcon, Share2 as ShareIcon, User, MessageSquare
 } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { supabase } from '../lib/supabase';
 
 const Admin = () => {
-    const { content, addItem, updateItem, deleteItem, updateHomepageSettings, importData } = useContent();
+    const { content, addItem, updateItem, deleteItem, updateHomepageSettings, importData, allCommentsList, deleteComment } = useContent();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('poems');
     const [editingItem, setEditingItem] = useState(null);
@@ -75,6 +75,7 @@ const Admin = () => {
         { id: 'reviews', label: 'რეცენზია', icon: Star, color: '#fbbf24' },
         { id: 'prose', label: 'პროზა', icon: BookText, color: '#4ade80' },
         { id: 'books', label: 'წიგნები', icon: Book, color: '#8b5cf6' },
+        { id: 'comments', label: 'კომენტარები', icon: MessageSquare, color: '#f97316' },
     ];
 
     const handleLogout = async () => {
@@ -876,6 +877,60 @@ const Admin = () => {
                                     ამ კატეგორიაში ჩანაწერები არ არის. დაამატეთ პირველი!
                                 </p>
                             </motion.div>
+                        )}
+                    </div>
+                )}
+
+                {/* COMMENTS TAB */}
+                {activeTab === 'comments' && (
+                    <div className="items-list">
+                        {allCommentsList.length === 0 ? (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="empty-state"
+                                style={{ padding: '3rem 1rem' }}
+                            >
+                                <p className="text-muted italic">კომენტარები არ არის.</p>
+                            </motion.div>
+                        ) : (
+                            allCommentsList.map(comment => (
+                                <motion.div
+                                    key={comment.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="item-card"
+                                    style={{ borderLeft: '3px solid #f97316' }}
+                                >
+                                    <div className="item-card-content">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                                            <User size={14} style={{ color: '#f97316' }} />
+                                            <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{comment.author_name}</span>
+                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                                                — {new Date(comment.created_at).toLocaleDateString('ka-GE')}
+                                            </span>
+                                        </div>
+                                        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>{comment.content}</p>
+                                    </div>
+                                    <div className="item-card-actions">
+                                        <motion.button
+                                            onClick={() => {
+                                                if (window.confirm('ნამდვილად გსურთ ამ კომენტარის წაშლა?')) {
+                                                    deleteComment(comment.id, comment.item_id);
+                                                    setShowSuccess(true);
+                                                    setTimeout(() => setShowSuccess(false), 3000);
+                                                }
+                                            }}
+                                            className="action-icon-btn btn-delete"
+                                            title="წაშლა"
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.95 }}
+                                        >
+                                            <Trash2 size={18} />
+                                        </motion.button>
+                                    </div>
+                                </motion.div>
+                            ))
                         )}
                     </div>
                 )}
