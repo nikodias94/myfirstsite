@@ -2142,3 +2142,46 @@ blockquote {
   background: var(--accent-gold);
   color: var(--bg-dark);
 }
+
+/* ========================================
+   TipTap Editor Styles (Matches Form Inputs)
+   ======================================== */
+.tiptap-wrapper {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: var(--text-base);
+  transition: all var(--transition-base);
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+/* Focus state simulated when the internal ProseMirror editor is focused */
+.tiptap-wrapper:has(.ProseMirror:focus) {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--accent-gold-dim);
+}
+
+.tiptap-editor .ProseMirror {
+  padding: var(--space-3) var(--space-4);
+  min-height: 120px;
+  outline: none;
+  color: var(--text-primary);
+  line-height: inherit;
+}
+
+.tiptap-editor .ProseMirror p {
+  margin-bottom: 0.5rem;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-muted);
+  pointer-events: none;
+  height: 0;
+}
