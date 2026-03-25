@@ -5,13 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     LogOut, Trash2, Edit, Plus, Download, Upload, Save, X,
     FileText, Feather, Globe, Star, BookText, Book, LayoutDashboard,
-    ChevronRight, CheckCircle, Home as HomeIcon, Image as ImageIcon, Link as LinkIcon, Share2 as ShareIcon, User, MessageSquare
+    ChevronRight, CheckCircle, Home as HomeIcon, Image as ImageIcon, Link as LinkIcon, Share2 as ShareIcon, User
 } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { supabase } from '../lib/supabase';
 
 const Admin = () => {
-    const { content, addItem, updateItem, deleteItem, updateHomepageSettings, importData, allCommentsList, deleteComment } = useContent();
+    const { content, addItem, updateItem, deleteItem, updateHomepageSettings, importData } = useContent();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('poems');
     const [editingItem, setEditingItem] = useState(null);
@@ -75,7 +75,6 @@ const Admin = () => {
         { id: 'reviews', label: 'რეცენზია', icon: Star, color: '#fbbf24' },
         { id: 'prose', label: 'პროზა', icon: BookText, color: '#4ade80' },
         { id: 'books', label: 'წიგნები', icon: Book, color: '#8b5cf6' },
-        { id: 'comments', label: 'კომენტარები', icon: MessageSquare, color: '#f97316' },
     ];
 
     const handleLogout = async () => {
