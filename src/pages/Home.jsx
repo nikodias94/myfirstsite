@@ -3,7 +3,6 @@ import { useContent } from '../context/ContentContext';
 import { motion } from 'framer-motion';
 import { User, Feather, Book } from 'lucide-react';
 import useTypingEffect from '../hooks/useTypingEffect';
-import PoemOfDay from '../components/PoemOfDay';
 import useSEO from '../hooks/useSEO';
 import ContentModal from '../components/ContentModal';
 
@@ -110,11 +109,6 @@ const Home = () => {
                 </motion.div>
             </div>
         </section>
-
-        {/* Poem of the Day */}
-        <PoemOfDay />
-
-        {/* My Books Section placeholder - removed from here */}
 
         {/* Dynamic About Section */}
         {(about.aboutTitle || about.aboutDescription) && (
