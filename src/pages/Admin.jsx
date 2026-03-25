@@ -571,9 +571,10 @@ const Admin = () => {
                 <AnimatePresence>
                     {isFormOpen && (
                         <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
+                            initial={{ opacity: 0, y: -12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -12 }}
+                            transition={{ duration: 0.25 }}
                             className="card mb-8"
                             style={{ border: '1px solid var(--accent-gold)' }}
                         >
