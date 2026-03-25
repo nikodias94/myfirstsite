@@ -332,22 +332,37 @@ export const ContentProvider = ({ children }) => {
 
   const addComment = async (itemId, commentData) => {
     if (!supabase) return false;
-    const { data, error } = await supabase.from('comments').insert([{
+
+    // Insert without .select() to avoid 404 caused by `columns=` param in supabase-js v2.99+
+    const { error } = await supabase.from('comments').insert({
       item_id: itemId,
       author_name: commentData.name,
-      author_email: commentData.email,
+      author_email: commentData.email || null,
       content: commentData.content
-    }]).select();
+    });
 
-    if (!error && data) {
-      const newComment = data[0];
+    if (error) {
+      console.error('Comment insert error:', error);
+      return false;
+    }
+
+    // Fetch the newly inserted comment
+    const { data: newRows } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('item_id', itemId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (newRows && newRows.length > 0) {
+      const newComment = newRows[0];
       setComments(prev => ({
         ...prev,
         [itemId]: [newComment, ...(prev[itemId] || [])]
       }));
       setAllCommentsList(prev => [newComment, ...prev]);
 
-      // Manually trigger notification Edge Function
+      // Notify via Edge Function (fire-and-forget)
       try {
         fetch('https://tgvsvqhioltwbujnvkwa.supabase.co/functions/v1/notify-new-comment', {
           method: 'POST',
@@ -355,15 +370,14 @@ export const ContentProvider = ({ children }) => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
           },
-          body: JSON.stringify({ record: data[0] })
-        }).catch(err => console.error("Email notification error:", err));
+          body: JSON.stringify({ record: newComment })
+        }).catch(e => console.error('Notification error:', e));
       } catch (e) {
-        console.error("Failed to trigger notification:", e);
+        console.error('Failed to trigger notification:', e);
       }
-
-      return true;
     }
-    return false;
+
+    return true;
   };
 
   const deleteComment = async (commentId, itemId) => {
@@ -379,6 +393,7 @@ export const ContentProvider = ({ children }) => {
     }
     return false;
   };
+
 
   return (
     <ContentContext.Provider value={{
