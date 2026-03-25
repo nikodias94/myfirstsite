@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -138,7 +138,10 @@ const MenuBar = ({ editor }) => {
 const RichTextEditor = ({ content, onChange }) => {
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            StarterKit.configure({
+                // Disable extensions that we're adding separately to avoid duplicates
+                link: false,
+            }),
             Underline,
             Link.configure({
                 openOnClick: false,
