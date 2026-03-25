@@ -835,7 +835,7 @@ const Admin = () => {
                                             ? `ბმული: ${item.path} | მიმდევრობა: ${item.order_index}`
                                             : activeTab === 'socialLinks'
                                                 ? `ბმული: ${item.url} | აიქონი: ${item.icon_name}`
-                                                : `${item.date} • ${item.content?.substring(0, 80) || ''}...`
+                                                : `${item.date} • ${(item.content || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim().substring(0, 80)}...`
                                         }
                                     </p>
                                 </div>
