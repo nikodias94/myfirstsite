@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 
 const SITE_NAME = 'ჟანა ანანიძე';
 const DEFAULT_DESC = 'ჟანა ანანიძეს პოეზია, პროზა, თარგმანები და ლიტერატურული რეცენზიები.';
-const OG_IMAGE = 'https://zhana.ge/og-image.jpg';
+const OG_IMAGE = 'https://zhana.ge/og-image.png';
 
 const useSEO = ({ title, description, path = '' } = {}) => {
   useEffect(() => {
