@@ -819,25 +819,14 @@ const Admin = () => {
                                     <h4 style={{
                                         fontSize: 'var(--text-lg)',
                                         fontWeight: 600,
-                                        marginBottom: '0.5rem',
-                                        color: 'var(--text-primary)'
-                                    }}>
-                                        {activeTab === 'socialLinks' ? item.platform_name : item.title}
-                                    </h4>
-                                    <p style={{
-                                        fontSize: 'var(--text-sm)',
-                                        color: 'var(--text-muted)',
+                                        margin: 0,
+                                        color: 'var(--text-primary)',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis'
                                     }}>
-                                        {activeTab === 'navigation' 
-                                            ? `ბმული: ${item.path} | მიმდევრობა: ${item.order_index}`
-                                            : activeTab === 'socialLinks'
-                                                ? `ბმული: ${item.url} | აიქონი: ${item.icon_name}`
-                                                : `${item.date} • ${(item.content || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim().substring(0, 80)}...`
-                                        }
-                                    </p>
+                                        {activeTab === 'socialLinks' ? item.platform_name : item.title}
+                                    </h4>
                                 </div>
                                 <div className="item-actions">
                                     <motion.button
