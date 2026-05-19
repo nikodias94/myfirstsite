@@ -1,17 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useContent } from '../context/ContentContext';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LogOut, Trash2, Edit, Plus, Download, Upload, Save, X,
     FileText, Feather, Globe, Star, BookText, Book, LayoutDashboard,
-    ChevronRight, CheckCircle, Home as HomeIcon, Image as ImageIcon, Link as LinkIcon, Share2 as ShareIcon, User
+    ChevronRight, CheckCircle, Home as HomeIcon, Image as ImageIcon, Link as LinkIcon, Share2 as ShareIcon, User, Layers
 } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { supabase } from '../lib/supabase';
 
 const Admin = () => {
-    const { content, addItem, updateItem, deleteItem, updateHomepageSettings, importData } = useContent();
+    const { content, addItem, updateItem, deleteItem, updateHomepageSettings, importData, getDynamicSections } = useContent();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('poems');
     const [editingItem, setEditingItem] = useState(null);
@@ -65,7 +65,8 @@ const Admin = () => {
         }
     }, [content.about]);
 
-    const categories = [
+    // Hardcoded categories
+    const staticCategories = [
         { id: 'homepage', label: 'მთავარი გვერდი', icon: HomeIcon, color: '#f43f5e' },
         { id: 'navigation', label: 'ნავიგაცია', icon: LinkIcon, color: '#2dd4bf' },
         { id: 'socialLinks', label: 'სოციალური ქსელები', icon: ShareIcon, color: '#ec4899' },
@@ -76,6 +77,23 @@ const Admin = () => {
         { id: 'prose', label: 'პროზა', icon: BookText, color: '#4ade80' },
         { id: 'books', label: 'წიგნები', icon: Book, color: '#8b5cf6' },
     ];
+
+    // Dynamic categories from navigation items (auto-generated)
+    const dynamicColors = ['#f97316', '#06b6d4', '#84cc16', '#e879f9', '#fb7185', '#22d3ee', '#a3e635'];
+    const dynamicCategories = useMemo(() => {
+        const sections = getDynamicSections();
+        return sections.map((nav, i) => ({
+            id: `dynamic_${nav.path}`,
+            label: nav.title,
+            icon: Layers,
+            color: dynamicColors[i % dynamicColors.length],
+            isDynamic: true,
+            sectionPath: nav.path,
+        }));
+    }, [content.navigation]);
+
+    // Merged categories: static + dynamic
+    const categories = [...staticCategories, ...dynamicCategories];
 
     const handleLogout = async () => {
         if (supabase) {
@@ -242,6 +260,15 @@ const Admin = () => {
     const currentCategory = categories.find(c => c.id === activeTab);
     const CurrentIcon = currentCategory?.icon || FileText;
 
+    // Helper: get items for the current tab (works for both static and dynamic)
+    const getItemsForTab = (tabId) => {
+        if (tabId.startsWith('dynamic_')) {
+            const sectionPath = tabId.replace('dynamic_', '');
+            return content.dynamicContent?.[sectionPath] || [];
+        }
+        return content[tabId] || [];
+    };
+
     return (
         <div className="container admin-dashboard">
             {/* Success Notification */}
@@ -335,8 +362,7 @@ const Admin = () => {
             >
                 {categories.map((cat) => {
                     const Icon = cat.icon;
-                    // For homepage, we don't really have a 'count' of items, just pass 1 or 'Settings'
-                    const count = cat.id === 'homepage' ? '⚙️' : (content[cat.id]?.length || 0);
+                    const count = cat.id === 'homepage' ? '⚙️' : getItemsForTab(cat.id).length;
                     return (
                         <motion.div
                             key={cat.id}
@@ -351,6 +377,7 @@ const Admin = () => {
                             <Icon size={20} style={{ color: cat.color, marginBottom: '0.5rem' }} />
                             <div className="admin-stat-number" style={{ fontSize: cat.id === 'homepage' ? '1.5rem' : '2rem' }}>{count}</div>
                             <div className="admin-stat-label">{cat.label}</div>
+                            {cat.isDynamic && <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>დინამიური</div>}
                         </motion.div>
                     );
                 })}
@@ -804,10 +831,10 @@ const Admin = () => {
                         </div>
                 )}
 
-                {/* List for Content Items */}
+                {/* List for Content Items (static + dynamic) */}
                 {activeTab !== 'homepage' && (
                     <div className="flex flex-col gap-4">
-                        {content[activeTab]?.map((item, index) => (
+                        {getItemsForTab(activeTab).map((item, index) => (
                             <motion.div
                                 key={item.id}
                                 className="admin-item"
@@ -827,6 +854,9 @@ const Admin = () => {
                                     }}>
                                         {activeTab === 'socialLinks' ? item.platform_name : item.title}
                                     </h4>
+                                    {item.date && (
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.date}</span>
+                                    )}
                                 </div>
                                 <div className="item-actions">
                                     <motion.button
@@ -856,7 +886,7 @@ const Admin = () => {
                                 </div>
                             </motion.div>
                         ))}
-                        {content[activeTab]?.length === 0 && (
+                        {getItemsForTab(activeTab).length === 0 && (
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}

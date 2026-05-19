@@ -6,8 +6,11 @@ const ContentContext = createContext();
 
 export const useContent = () => useContext(ContentContext);
 
+// Paths that already have dedicated hardcoded pages — do NOT create dynamic content for these
+const KNOWN_PATHS = ['/', '/poetry', '/poems-en', '/translations', '/reviews', '/prose', '/about', '/contact', '/login', '/admin'];
+
 export const ContentProvider = ({ children }) => {
-  const [content, setContent] = useState({ ...defaultContent, navigation: [], socialLinks: [], books: [] });
+  const [content, setContent] = useState({ ...defaultContent, navigation: [], socialLinks: [], books: [], dynamicContent: {} });
   const [likes, setLikes] = useState({}); // { item_id: count }
   const [comments, setComments] = useState({}); // { item_id: [comment1, ...] }
   const [allCommentsList, setAllCommentsList] = useState([]); // flat list for admin
@@ -34,11 +37,23 @@ export const ContentProvider = ({ children }) => {
           supabase.from('social_links').select('*').order('created_at', { ascending: true }),
           supabase.from('books').select('*').order('order_index', { ascending: true }),
           supabase.from('likes').select('item_id'),
-          supabase.from('comments').select('*').order('created_at', { ascending: false })
+          supabase.from('comments').select('*').order('created_at', { ascending: false }),
+          // Fetch dynamic content (gracefully handles table not existing)
+          supabase.from('dynamic_content').select('*').order('created_at', { ascending: false }),
         ]);
 
-        const [likesRes, commentsRes] = res.slice(-2);
+        const [likesRes, commentsRes, dynamicContentRes] = res.slice(-3);
         const [poemsRes, poemsEnRes, translationsRes, reviewsRes, proseRes, homepageSettingsRes, navigationRes, socialLinksRes, booksRes] = res.slice(0, 9);
+
+        // Group dynamic content by section_path
+        const dynamicMap = {};
+        if (dynamicContentRes.data) {
+          dynamicContentRes.data.forEach(item => {
+            const path = item.section_path;
+            if (!dynamicMap[path]) dynamicMap[path] = [];
+            dynamicMap[path].push(item);
+          });
+        }
 
         setContent(prev => {
           const newAbout = homepageSettingsRes.data ? {
@@ -69,6 +84,7 @@ export const ContentProvider = ({ children }) => {
             navigation: navigationRes.data || [],
             socialLinks: socialLinksRes.data || [],
             books: booksRes?.data || [],
+            dynamicContent: dynamicMap,
             about: newAbout
           };
         });
@@ -105,7 +121,13 @@ export const ContentProvider = ({ children }) => {
     if (category === 'poemsEn') return 'poems_en';
     if (category === 'navigation') return 'navigation_menu';
     if (category === 'socialLinks') return 'social_links';
+    if (category.startsWith('dynamic_')) return 'dynamic_content';
     return category; // poems, translations, reviews, prose, books
+  };
+
+  // Get dynamic sections — nav items whose paths are NOT in KNOWN_PATHS
+  const getDynamicSections = () => {
+    return content.navigation.filter(nav => !KNOWN_PATHS.includes(nav.path));
   };
 
   const transliterate = (text) => {
@@ -148,6 +170,18 @@ export const ContentProvider = ({ children }) => {
         cover_url: item.cover_url,
         order_index: parseInt(item.order_index, 10) || 0
       };
+    } else if (category.startsWith('dynamic_')) {
+      // Dynamic content — extract section_path from category id
+      const sectionPath = category.replace('dynamic_', '');
+      const slug = createSlug(item.title) + '-' + Math.random().toString(36).substring(2, 6);
+      newItem = {
+        section_path: sectionPath,
+        title: item.title,
+        content: item.content,
+        date: item.date || new Date().toISOString().split('T')[0],
+        slug: slug,
+        media_urls: item.media_urls || []
+      };
     } else {
       // Default date if none provided for other content types
       const slug = createSlug(item.title) + '-' + Math.random().toString(36).substring(2, 6);
@@ -167,10 +201,21 @@ export const ContentProvider = ({ children }) => {
     }
 
     if (data && data.length > 0) {
-      setContent(prev => ({
-        ...prev,
-        [category]: [data[0], ...prev[category]]
-      }));
+      if (category.startsWith('dynamic_')) {
+        const sectionPath = category.replace('dynamic_', '');
+        setContent(prev => ({
+          ...prev,
+          dynamicContent: {
+            ...prev.dynamicContent,
+            [sectionPath]: [data[0], ...(prev.dynamicContent[sectionPath] || [])]
+          }
+        }));
+      } else {
+        setContent(prev => ({
+          ...prev,
+          [category]: [data[0], ...prev[category]]
+        }));
+      }
     }
     return true;
   };
@@ -198,6 +243,13 @@ export const ContentProvider = ({ children }) => {
         cover_url: updatedItem.cover_url,
         order_index: parseInt(updatedItem.order_index, 10) || 0
       };
+    } else if (category.startsWith('dynamic_')) {
+      updateData = {
+        title: updatedItem.title,
+        content: updatedItem.content,
+        date: updatedItem.date,
+        media_urls: updatedItem.media_urls || []
+      };
     } else {
       updateData = {
         title: updatedItem.title,
@@ -214,10 +266,21 @@ export const ContentProvider = ({ children }) => {
     }
 
     if (data && data.length > 0) {
-      setContent(prev => ({
-        ...prev,
-        [category]: prev[category].map(item => item.id === id ? { ...item, ...data[0] } : item)
-      }));
+      if (category.startsWith('dynamic_')) {
+        const sectionPath = category.replace('dynamic_', '');
+        setContent(prev => ({
+          ...prev,
+          dynamicContent: {
+            ...prev.dynamicContent,
+            [sectionPath]: (prev.dynamicContent[sectionPath] || []).map(item => item.id === id ? { ...item, ...data[0] } : item)
+          }
+        }));
+      } else {
+        setContent(prev => ({
+          ...prev,
+          [category]: prev[category].map(item => item.id === id ? { ...item, ...data[0] } : item)
+        }));
+      }
     }
     return true;
   };
@@ -232,10 +295,21 @@ export const ContentProvider = ({ children }) => {
       return false;
     }
 
-    setContent(prev => ({
-      ...prev,
-      [category]: prev[category].filter(item => item.id !== id)
-    }));
+    if (category.startsWith('dynamic_')) {
+      const sectionPath = category.replace('dynamic_', '');
+      setContent(prev => ({
+        ...prev,
+        dynamicContent: {
+          ...prev.dynamicContent,
+          [sectionPath]: (prev.dynamicContent[sectionPath] || []).filter(item => item.id !== id)
+        }
+      }));
+    } else {
+      setContent(prev => ({
+        ...prev,
+        [category]: prev[category].filter(item => item.id !== id)
+      }));
+    }
     return true;
   };
 
@@ -302,7 +376,7 @@ export const ContentProvider = ({ children }) => {
   const resetToDefault = () => {
     // This previously reset localStorage, now it might reset state or do nothing.
     // For safety, we keep the function to avoid ReferenceErrors.
-    setContent({ ...defaultContent, navigation: [], socialLinks: [] });
+    setContent({ ...defaultContent, navigation: [], socialLinks: [], dynamicContent: {} });
     return true;
   };
 
@@ -400,7 +474,8 @@ export const ContentProvider = ({ children }) => {
       content, loading, likes, comments, allCommentsList,
       addItem, updateItem, deleteItem,
       updateHomepageSettings, importData, resetToDefault,
-      toggleLike, addComment, deleteComment
+      toggleLike, addComment, deleteComment,
+      getDynamicSections, KNOWN_PATHS
     }}>
       {children}
     </ContentContext.Provider>

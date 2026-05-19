@@ -14,6 +14,7 @@ const Prose       = lazy(() => import('./pages/Prose'));
 const Admin       = lazy(() => import('./pages/Admin'));
 const Login       = lazy(() => import('./pages/Login'));
 const NotFound    = lazy(() => import('./pages/NotFound'));
+const DynamicPage = lazy(() => import('./pages/DynamicPage'));
 
 // Minimal loading spinner shown while chunks load
 const PageLoader = () => (
@@ -44,16 +45,17 @@ function App() {
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
+              {/* Hardcoded content routes (properly nested under Layout) */}
               <Route path="poetry" element={<Poetry />} />
-            <Route path="poetry/:slug" element={<Poetry />} />
-            <Route path="poems-en" element={<PoemsEn />} />
-            <Route path="poems-en/:slug" element={<PoemsEn />} />
-            <Route path="translations" element={<Translations />} />
-            <Route path="translations/:slug" element={<Translations />} />
-            <Route path="reviews" element={<Reviews />} />
-            <Route path="reviews/:slug" element={<Reviews />} />
-            <Route path="prose" element={<Prose />} />
-            <Route path="prose/:slug" element={<Prose />} />
+              <Route path="poetry/:slug" element={<Poetry />} />
+              <Route path="poems-en" element={<PoemsEn />} />
+              <Route path="poems-en/:slug" element={<PoemsEn />} />
+              <Route path="translations" element={<Translations />} />
+              <Route path="translations/:slug" element={<Translations />} />
+              <Route path="reviews" element={<Reviews />} />
+              <Route path="reviews/:slug" element={<Reviews />} />
+              <Route path="prose" element={<Prose />} />
+              <Route path="prose/:slug" element={<Prose />} />
               <Route path="login" element={<Login />} />
               <Route
                 path="admin"
@@ -63,6 +65,10 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              {/* Dynamic CMS pages — catch-all for nav-created sections */}
+              <Route path=":section" element={<DynamicPage />} />
+              <Route path=":section/:slug" element={<DynamicPage />} />
+              {/* 404 fallback */}
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
