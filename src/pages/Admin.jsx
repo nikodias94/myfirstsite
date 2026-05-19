@@ -628,7 +628,16 @@ const Admin = () => {
                                                 type="text"
                                                 placeholder="სათაური"
                                                 value={formData.title}
-                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                onChange={e => {
+                                                    const newTitle = e.target.value;
+                                                    const updates = { title: newTitle };
+                                                    if (!editingItem) {
+                                                        const map = { 'ა': 'a', 'ბ': 'b', 'გ': 'g', 'დ': 'd', 'ე': 'e', 'ვ': 'v', 'ზ': 'z', 'თ': 't', 'ი': 'i', 'კ': 'k', 'ლ': 'l', 'მ': 'm', 'ნ': 'n', 'ო': 'o', 'პ': 'p', 'ჟ': 'zh', 'რ': 'r', 'ს': 's', 'ტ': 't', 'უ': 'u', 'ფ': 'p', 'ქ': 'k', 'ღ': 'gh', 'ყ': 'q', 'შ': 'sh', 'ჩ': 'ch', 'ც': 'ts', 'ძ': 'dz', 'წ': 'ts', 'ჭ': 'ch', 'ხ': 'kh', 'ჯ': 'j', 'ჰ': 'h' };
+                                                        const slug = newTitle.split('').map(char => map[char.toLowerCase()] || char).join('').toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+                                                        updates.path = slug ? '/' + slug : '';
+                                                    }
+                                                    setFormData({ ...formData, ...updates });
+                                                }}
                                                 className="form-input"
                                                 required
                                             />
