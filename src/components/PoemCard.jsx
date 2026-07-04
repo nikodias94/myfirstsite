@@ -244,7 +244,7 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-outline btn-sm poem-view-btn"
-                        style={{ padding: '0.4rem 0.6rem', color: 'var(--accent-gold)' }}
+                        style={{ padding: '0.4rem 0.6rem 0.55rem 0.6rem', color: 'var(--accent-gold)', lineHeight: 1.4 }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         title="წყაროზე გადასვლა"
