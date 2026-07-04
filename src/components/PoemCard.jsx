@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Calendar, ChevronRight, Share2, Twitter, Facebook, MessageCircle, Copy, Check, Heart } from 'lucide-react';
+import { Eye, Calendar, ChevronRight, Share2, Twitter, Facebook, MessageCircle, Copy, Check, Heart, ExternalLink } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import DOMPurify from 'dompurify';
 
@@ -15,36 +15,13 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
     const likedItems = JSON.parse(localStorage.getItem('zhana_liked_items') || '[]');
     const isLiked = likedItems.includes(item.id);
 
-    // Truncate text function for HTML excerpts
-    const truncateText = (htmlString, maxLength = 150) => {
-        if (!htmlString) return '';
-        
-        // Create a temporary element to strip HTML tags
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = DOMPurify.sanitize(htmlString);
-        const text = tempDiv.textContent || tempDiv.innerText || '';
-
-        if (text.length <= maxLength) return text;
-
-        // Find the last space before maxLength to avoid cutting words
-        const truncated = text.substring(0, maxLength);
-        const lastSpaceIndex = truncated.lastIndexOf(' ');
-
-        if (lastSpaceIndex > 0) {
-            return truncated.substring(0, lastSpaceIndex) + '...';
-        }
-        return truncated + '...';
-    };
-
     // Format date nicely
     const formatDate = (dateString) => {
         if (!dateString) return null;
         try {
-            return new Date(dateString).toLocaleDateString('ka-GE', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
+            const date = new Date(dateString);
+            const months = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
+            return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
         } catch {
             return dateString;
         }
@@ -97,10 +74,6 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
         setShowShareMenu(false);
     };
 
-    const displayContent = showFullContent
-        ? item.content
-        : truncateText(item.content, 200);
-
     const hasMoreContent = item.content && item.content.length > 200;
 
     return (
@@ -122,6 +95,27 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
                 transition: { duration: 0.3 }
             }}
         >
+            {/* Card Image Preview if exists */}
+            {item.media_urls && item.media_urls.length > 0 && (
+                <div 
+                    className="poem-card-image-wrapper" 
+                    style={{ position: 'relative', cursor: onOpenModal ? 'pointer' : 'default' }}
+                    onClick={() => onOpenModal && onOpenModal()}
+                >
+                    <img src={item.media_urls[0]} alt={item.title} className="poem-card-image" />
+                    {item.media_urls.length > 1 && (
+                        <div style={{
+                            position: 'absolute', bottom: '8px', right: '8px',
+                            background: 'rgba(0,0,0,0.7)', color: 'var(--accent-gold)',
+                            padding: '4px 8px', borderRadius: '4px', fontSize: '12px',
+                            backdropFilter: 'blur(4px)', border: '1px solid var(--border-gold)'
+                        }}>
+                            + {item.media_urls.length - 1} ფოტო
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Card Header with Title */}
             <header className="poem-card-header">
                 <h3 className="card-title poem-title">
@@ -146,9 +140,11 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
                         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.content) }}
                     />
                 ) : (
-                    <p className="poem-text-truncated tiptap-editor-content">
-                        {displayContent}
-                    </p>
+                    <div 
+                        className="tiptap-editor-content poem-text-truncated"
+                        style={{ display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.content) }}
+                    />
                 )}
 
                 {/* Fade effect for truncated text */}
@@ -159,7 +155,7 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
 
             {/* Card Footer */}
             <footer className="card-footer poem-footer">
-                <div className="poem-meta">
+                <div className="poem-meta" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
                     {item.date && (
                         <time
                             className="card-date poem-date"
@@ -241,8 +237,26 @@ const PoemCard = ({ item, index = 0, onOpenModal }) => {
                         {itemCount > 0 && <span style={{ fontSize: '0.85rem', marginLeft: '0.3rem' }}>{itemCount}</span>}
                     </motion.button>
 
+                {/* External Link Button */}
+                {item.link_url && (
+                    <motion.a
+                        href={item.link_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline btn-sm poem-view-btn"
+                        style={{ padding: '0.4rem 0.6rem', color: 'var(--accent-gold)' }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        title="წყაროზე გადასვლა"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <ExternalLink size={16} />
+                        <span style={{ marginLeft: '0.4rem' }}>წყარო</span>
+                    </motion.a>
+                )}
+
                 {/* View Full Button */}
-                {hasMoreContent && (
+                {(hasMoreContent || (item.media_urls && item.media_urls.length > 0)) && (
                     <motion.button
                         onClick={onOpenModal ? onOpenModal : () => setShowFullContent(!showFullContent)}
                         className="btn btn-outline btn-sm poem-view-btn"

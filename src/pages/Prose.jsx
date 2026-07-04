@@ -14,7 +14,11 @@ const Prose = () => {
     const { prose } = content;
     const [selectedItem, setSelectedItem] = useState(null);
 
-    useSEO({ title: 'პროზა', path: '/prose' });
+    useSEO({ 
+        title: 'პროზა', 
+        description: 'ჟანა ანანიძის პროზა — მოთხრობები, ესეები და სხვა პროზაული ნაწარმოებები.',
+        path: '/prose' 
+    });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(prose, openItem);

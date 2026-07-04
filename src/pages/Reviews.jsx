@@ -14,7 +14,11 @@ const Reviews = () => {
     const { reviews } = content;
     const [selectedItem, setSelectedItem] = useState(null);
 
-    useSEO({ title: 'რეცენზია', path: '/reviews' });
+    useSEO({ 
+        title: 'რეცენზია', 
+        description: 'ლიტერატურული რეცენზიები და კრიტიკა — ჟანა ანანიძის ნაწარმოებების ანალიზი.',
+        path: '/reviews' 
+    });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(reviews, openItem);

@@ -43,9 +43,45 @@
     <!-- ===== Preconnect for Google Fonts (already used by the site) ===== -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- ===== Schema.org JSON-LD ===== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "ჟანა ანანიძე",
+      "alternateName": "Zhana Ananidze",
+      "url": "https://zhana.ge/",
+      "description": "ჟანა ანანიძის ოფიციალური ვებგვერდი — ქართული პოეზია, პროზა, თარგმანები.",
+      "inLanguage": "ka",
+      "author": {
+        "@type": "Person",
+        "name": "ჟანა ანანიძე",
+        "alternateName": "Zhana Ananidze",
+        "url": "https://zhana.ge/",
+        "jobTitle": "პოეტი, პროზაიკოსი, მთარგმნელი",
+        "sameAs": [
+          "https://www.facebook.com/profile.php?id=61557320443224",
+          "mailto:contact@zhanaananidze.com"
+        ]
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <h1>ჟანა ანანიძე — პოეტი, პროზაიკოსი, მთარგმნელი</h1>
+      <p>ქართული პოეზია, პროზა, თარგმანები და ლიტერატურული რეცენზიები.</p>
+      <ul>
+        <li><a href="/poetry">პოეზია</a></li>
+        <li><a href="/poems-en">Poems in English</a></li>
+        <li><a href="/translations">თარგმანი</a></li>
+        <li><a href="/reviews">რეცენზია</a></li>
+        <li><a href="/prose">პროზა</a></li>
+        <li><a href="/periodika">პერიოდიკა</a></li>
+      </ul>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

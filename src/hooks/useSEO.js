@@ -17,6 +17,15 @@ const useSEO = ({ title, description, path = '' } = {}) => {
     // Title
     document.title = fullTitle;
 
+    // Canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = url;
+
     // Helper to upsert a meta tag
     const setMeta = (selector, attr, value) => {
       let el = document.querySelector(selector);
@@ -39,6 +48,27 @@ const useSEO = ({ title, description, path = '' } = {}) => {
     setMeta('meta[name="twitter:card"]',       'content', 'summary_large_image');
     setMeta('meta[name="twitter:title"]',      'content', fullTitle);
     setMeta('meta[name="twitter:description"]','content', desc);
+
+    // Breadcrumb Schema.org
+    if (path && path !== '/') {
+      const breadcrumbId = 'breadcrumb-schema';
+      let script = document.getElementById(breadcrumbId);
+      if (!script) {
+        script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.id = breadcrumbId;
+        document.head.appendChild(script);
+      }
+      const schema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "მთავარი", "item": "https://zhana.ge/" },
+          { "@type": "ListItem", "position": 2, "name": title || "გვერდი", "item": url }
+        ]
+      };
+      script.text = JSON.stringify(schema);
+    }
   }, [title, description, path]);
 };
 

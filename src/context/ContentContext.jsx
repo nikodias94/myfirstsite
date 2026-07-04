@@ -180,7 +180,8 @@ export const ContentProvider = ({ children }) => {
         content: item.content,
         date: item.date || new Date().toISOString().split('T')[0],
         slug: slug,
-        media_urls: item.media_urls || []
+        media_urls: item.media_urls || [],
+        link_url: item.link_url || null
       };
     } else {
       // Default date if none provided for other content types
@@ -248,7 +249,8 @@ export const ContentProvider = ({ children }) => {
         title: updatedItem.title,
         content: updatedItem.content,
         date: updatedItem.date,
-        media_urls: updatedItem.media_urls || []
+        media_urls: updatedItem.media_urls || [],
+        link_url: updatedItem.link_url || null
       };
     } else {
       updateData = {

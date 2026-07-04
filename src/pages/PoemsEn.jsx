@@ -12,7 +12,11 @@ const PoemsEn = () => {
     const { poemsEn } = content;
     const [selectedItem, setSelectedItem] = useState(null);
 
-    useSEO({ title: 'Poems in English', path: '/poems-en' });
+    useSEO({ 
+        title: 'Poems in English', 
+        description: 'Poetry by Zhana Ananidze translated into English — contemporary Georgian poetry.',
+        path: '/poems-en' 
+    });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(poemsEn, openItem);

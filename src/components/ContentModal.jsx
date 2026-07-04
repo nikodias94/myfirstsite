@@ -3,10 +3,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Copy, Check, Heart } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import DOMPurify from 'dompurify';
+import Lightbox from './Lightbox';
+import { ZoomIn, ExternalLink } from 'lucide-react';
 
-const ContentModal = ({ isOpen, onClose, id, title, content, date, cover_url }) => {
+const ContentModal = ({ isOpen, onClose, id, title, content, date, media_urls, link_url }) => {
     const { likes: allLikes, toggleLike } = useContent();
     const [copied, setCopied] = useState(false);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
+
+    const formatDate = (dateString) => {
+        if (!dateString) return null;
+        try {
+            const d = new Date(dateString);
+            const months = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
+            return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()}`;
+        } catch {
+            return dateString;
+        }
+    };
 
     const liked = allLikes[id] || false;
     const likeCount = allLikes[id] || 0;
@@ -66,7 +81,7 @@ const ContentModal = ({ isOpen, onClose, id, title, content, date, cover_url }) 
                             <div className="modal-header">
                                 <div>
                                     <h3 id="modal-title" className="modal-title">{title}</h3>
-                                    {date && <span className="modal-date">{date}</span>}
+                                    {date && <span className="modal-date">{formatDate(date)}</span>}
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     {/* Copy button */}
@@ -124,39 +139,59 @@ const ContentModal = ({ isOpen, onClose, id, title, content, date, cover_url }) 
                             <div className="modal-divider" />
 
                             {/* Scrollable Content */}
-                            <div className="modal-body">
-                                {cover_url && (
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'center', 
-                                        marginBottom: '2.5rem',
-                                        perspective: '1000px'
-                                    }}>
-                                        <motion.div
-                                            initial={{ rotateY: -15, scale: 0.9, opacity: 0 }}
-                                            animate={{ rotateY: 0, scale: 1, opacity: 1 }}
-                                            transition={{ duration: 0.6, delay: 0.2 }}
-                                            style={{
-                                                width: '220px',
-                                                height: '300px',
-                                                borderRadius: '8px',
-                                                overflow: 'hidden',
-                                                border: '2px solid var(--border-gold)',
-                                                boxShadow: '0 20px 50px rgba(0,0,0,0.6)'
-                                            }}
-                                        >
-                                            <img src={cover_url} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        </motion.div>
+                            <div className={`modal-body ${media_urls && media_urls.length > 0 ? 'modal-split-layout' : ''}`}>
+                                {media_urls && media_urls.length > 0 && (
+                                    <div className="modal-image-container">
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                                            {media_urls.map((url, index) => (
+                                                <div 
+                                                    key={index} 
+                                                    className="modal-image-wrapper"
+                                                    style={{ cursor: 'pointer', position: 'relative' }}
+                                                    onClick={() => {
+                                                        setLightboxIndex(index);
+                                                        setLightboxOpen(true);
+                                                    }}
+                                                >
+                                                    <img src={url} alt={`${title} - ${index + 1}`} className="modal-split-image" />
+                                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.3s ease' }} onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0}>
+                                                        <ZoomIn size={32} color="var(--accent-gold)" />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
-                                <div 
-                                    className="tiptap-editor-content"
-                                    style={{ lineHeight: 1.9, color: 'var(--text-secondary)' }}
-                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
-                                />
+                                <div className={`modal-text-container ${media_urls && media_urls.length > 0 ? 'has-image' : ''}`}>
+                                    <div 
+                                        className="tiptap-editor-content"
+                                        style={{ lineHeight: 1.9, color: 'var(--text-secondary)' }}
+                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+                                    />
+                                    {link_url && (
+                                        <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid rgba(201, 169, 110, 0.2)' }}>
+                                            <a 
+                                                href={link_url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="btn btn-outline"
+                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}
+                                            >
+                                                <ExternalLink size={18} /> წყაროზე გადასვლა
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     </div>
+
+                    <Lightbox 
+                        images={media_urls || []} 
+                        initialIndex={lightboxIndex} 
+                        isOpen={lightboxOpen} 
+                        onClose={() => setLightboxOpen(false)} 
+                    />
                 </>
             )}
         </AnimatePresence>

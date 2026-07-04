@@ -106,6 +106,8 @@ const SearchBar = ({ onNavigate } = {}) => {
                     aria-hidden="true"
                 />
                 <input
+                    id="nav-search"
+                    name="search"
                     ref={inputRef}
                     type="search"
                     value={query}

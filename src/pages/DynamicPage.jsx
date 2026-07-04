@@ -19,7 +19,11 @@ const DynamicPage = () => {
     const pageTitle = navItem?.title || section;
     const items = content.dynamicContent?.[sectionPath] || [];
 
-    useSEO({ title: pageTitle, path: sectionPath });
+    useSEO({ 
+        title: pageTitle, 
+        description: `ჟანა ანანიძის პუბლიკაციები — ${pageTitle}.`,
+        path: sectionPath 
+    });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(items, openItem);
@@ -65,6 +69,8 @@ const DynamicPage = () => {
                     title={selectedItem?.title}
                     content={selectedItem?.content}
                     date={selectedItem?.date}
+                    media_urls={selectedItem?.media_urls}
+                    link_url={selectedItem?.link_url}
                 />
             </div>
         </>

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { supabase } from '../lib/supabase';
+import imageCompression from 'browser-image-compression';
 
 const Admin = () => {
     const { content, addItem, updateItem, deleteItem, updateHomepageSettings, importData, getDynamicSections } = useContent();
@@ -141,7 +142,9 @@ const Admin = () => {
                 url: item.url || '',
                 icon_name: item.icon_name || '',
                 description: item.description || '',
-                cover_url: item.cover_url || ''
+                cover_url: item.cover_url || '',
+                media_urls: item.media_urls || [],
+                link_url: item.link_url || ''
             });
         } else {
             setEditingItem(null);
@@ -155,7 +158,9 @@ const Admin = () => {
                 url: '',
                 icon_name: '',
                 description: '',
-                cover_url: ''
+                cover_url: '',
+                media_urls: [],
+                link_url: ''
             });
         }
         setIsFormOpen(true);
@@ -807,11 +812,95 @@ const Admin = () => {
                                             />
                                         </div>
                                         <div className="form-group">
-                                            <label className="form-label">თარიღი</label>
+                                            <label className="form-label">თარიღი (ან გამოცემის ნომერი)</label>
                                             <input
                                                 type="date"
                                                 value={formData.date}
                                                 onChange={e => setFormData({ ...formData, date: e.target.value })}
+                                                className="form-input"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">სურათის/სკანერის ფოტო (პერიოდიკისთვის)</label>
+                                            <div style={{ marginTop: '0.5rem' }}>
+                                                <input
+                                                    type="file"
+                                                    id="dynamicMediaUpload"
+                                                    accept="image/*"
+                                                    multiple
+                                                    onChange={async (e) => {
+                                                        const files = Array.from(e.target.files);
+                                                        if (!files.length || !supabase) return;
+                                                        
+                                                        setUploadingImage(true);
+                                                        const newUrls = [];
+                                                        try {
+                                                            const options = { maxSizeMB: 1.5, maxWidthOrHeight: 1920, useWebWorker: true };
+                                                            for (const file of files) {
+                                                                const fileExt = file.name.split('.').pop();
+                                                                const fileName = `dynamic_${Math.random()}.${fileExt}`;
+                                                                const compressedFile = await imageCompression(file, options);
+                                                                const { error } = await supabase.storage.from('homepage_assets').upload(fileName, compressedFile);
+                                                                if (error) throw error;
+                                                                const { data } = supabase.storage.from('homepage_assets').getPublicUrl(fileName);
+                                                                newUrls.push(data.publicUrl);
+                                                            }
+                                                            setFormData(prev => ({ ...prev, media_urls: [...(prev.media_urls || []), ...newUrls] }));
+                                                        } catch (err) {
+                                                            alert('ფოტოების ატვირთვა ვერ მოხერხდა: ' + err.message);
+                                                        } finally {
+                                                            setUploadingImage(false);
+                                                        }
+                                                    }}
+                                                    style={{ display: 'none' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-outline"
+                                                    onClick={() => document.getElementById('dynamicMediaUpload').click()}
+                                                    disabled={uploadingImage}
+                                                >
+                                                    <ImageIcon size={16} style={{ marginRight: '0.5rem' }}/> 
+                                                    {uploadingImage ? 'იტვირთება...' : 'სურათების დამატება'}
+                                                </button>
+                                            </div>
+                                            {formData.media_urls && formData.media_urls.length > 0 && (
+                                                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+                                                    {formData.media_urls.map((url, i) => (
+                                                        <div key={i} style={{ position: 'relative' }}>
+                                                            <img 
+                                                                src={url} 
+                                                                alt="Preview" 
+                                                                style={{ width: '100px', height: '140px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-gold)' }} 
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newUrls = formData.media_urls.filter((_, index) => index !== i);
+                                                                    setFormData({ ...formData, media_urls: newUrls });
+                                                                }}
+                                                                style={{
+                                                                    position: 'absolute', top: '-8px', right: '-8px',
+                                                                    background: '#ef4444', color: 'white', border: 'none',
+                                                                    borderRadius: '50%', width: '22px', height: '22px',
+                                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                    cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.5)'
+                                                                }}
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">გარე ბმული / წყარო (არასავალდებულო)</label>
+                                            <input
+                                                type="url"
+                                                placeholder="https://example.com"
+                                                value={formData.link_url || ''}
+                                                onChange={e => setFormData({ ...formData, link_url: e.target.value })}
                                                 className="form-input"
                                             />
                                         </div>

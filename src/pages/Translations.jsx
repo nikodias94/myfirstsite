@@ -14,7 +14,11 @@ const Translations = () => {
     const { translations } = content;
     const [selectedItem, setSelectedItem] = useState(null);
 
-    useSEO({ title: 'თარგმანი', path: '/translations' });
+    useSEO({ 
+        title: 'თარგმანი', 
+        description: 'ჟანა ანანიძის თარგმანები — უცხოური პოეზიის ქართული ვერსიები.',
+        path: '/translations' 
+    });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(translations, openItem);

@@ -10,7 +10,11 @@ const Home = () => {
     const { content } = useContent();
     const { about } = content;
     const [selectedBook, setSelectedBook] = useState(null);
-    useSEO({ title: 'მთავარი', path: '/' });
+    useSEO({ 
+        title: 'მთავარი', 
+        description: 'ჟანა ანანიძის ოფიციალური ვებგვერდი — ქართული პოეზია, პროზა, თარგმანები და ლიტერატურული რეცენზიები.',
+        path: '/' 
+    });
     const typingWordsList = about.typingWords
         ? about.typingWords.split(',').map(w => w.trim()).filter(Boolean)
         : ['პოეტი', 'პროზაიკოსი', 'მთარგმნელი', 'შემოქმედი'];
@@ -140,7 +144,7 @@ const Home = () => {
                                     border: '2px solid var(--border-gold)',
                                     boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
                                 }}>
-                                    <img src={about.aboutImage} alt={about.aboutTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={about.aboutImage} alt={about.aboutTitle} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 </div>
                             </motion.div>
                         )}

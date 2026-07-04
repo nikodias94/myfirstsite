@@ -12,7 +12,11 @@ const Poetry = () => {
     const { poems } = content;
     const [selectedItem, setSelectedItem] = useState(null);
 
-    useSEO({ title: 'პოეზია', path: '/poetry' });
+    useSEO({ 
+        title: 'პოეზია', 
+        description: 'ჟანა ანანიძის ქართული პოეზია — ლექსები თავისუფლებაზე, სიყვარულსა და სამშობლოზე.',
+        path: '/poetry' 
+    });
 
     const openItem = useCallback((item) => setSelectedItem(item), []);
     useAutoOpenItem(poems, openItem);
